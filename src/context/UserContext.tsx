@@ -4,10 +4,18 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // Define the type for your user state
-interface User {
-  id: string; // or number, depending on your actual structure
-  name: string;
-  requests: any[]; // Adjust this to your request structure
+export interface Request {
+  // Define the properties of a request based on your application logic
+  id: string;
+  description: string;
+  status: string; // You can adjust these fields as necessary
+}
+
+export interface User {
+  _id: string; // Make sure _id is included
+  email: string; // Add any other properties you want
+  isAdmin: boolean; // Add admin property if applicable
+  requests: Request[]; // Include requests array
 }
 
 interface UserState {
@@ -17,7 +25,7 @@ interface UserState {
 // Define the context type
 interface UserContextType {
   state: UserState;
-  dispatch: React.Dispatch<any>; // Replace `any` with the actual action type
+  dispatch: React.Dispatch<any>; // Replace `any` with the actual action type if possible
 }
 
 // Default state
@@ -30,7 +38,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const userReducer = (state: UserState, action: any): UserState => {
   switch (action.type) {
-    // Define your cases
+    // Define your cases for actions
     default:
       return state;
   }

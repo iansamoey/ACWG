@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 
 export interface IUser {
-  _id: mongoose.Types.ObjectId; // Keep as ObjectId
+  _id:string; // Keep as ObjectId
   email: string;
   password: string;
   isAdmin: boolean;

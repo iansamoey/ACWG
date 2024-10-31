@@ -1,32 +1,33 @@
-// src/components/Sidebar.tsx
-
 import React from 'react';
-import Link from 'next/link';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  setActiveTab: (tab: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ setActiveTab }) => {
   return (
     <div className="bg-gray-800 text-white h-full w-64 p-4 fixed top-0 left-0">
       <h2 className="text-xl font-bold mb-4">Dashboard</h2>
       <ul>
         <li className="mb-2">
-          <Link href="/order-status" className="hover:underline">
+          <button onClick={() => setActiveTab('order-status')} className="hover:underline">
             View Order Status
-          </Link>
+          </button>
         </li>
         <li className="mb-2">
-          <Link href="/cart-status" className="hover:underline">
+          <button onClick={() => setActiveTab('cart-status')} className="hover:underline">
             View Cart Status
-          </Link>
+          </button>
         </li>
         <li className="mb-2">
-          <Link href="/services" className="hover:underline">
-            Services
-          </Link>
+          <button onClick={() => setActiveTab('order-summary')} className="hover:underline">
+            Order Summary
+          </button>
         </li>
         <li>
-          <Link href="/logout" className="hover:underline">
-            Log Out
-          </Link>
+          <button onClick={() => setActiveTab('services')} className="hover:underline">
+            Services
+          </button>
         </li>
       </ul>
     </div>

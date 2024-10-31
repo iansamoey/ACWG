@@ -1,12 +1,39 @@
 // src/app/checkout/page.tsx
-
 import React from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useCart } from '../../context/CartContext';
+import { useUser } from '../../context/UserContext'; // Import UserContext
+import { useRouter } from 'next/router'; // Import useRouter for navigation
 
 const Checkout: React.FC = () => {
   const { state } = useCart();
+  const { state: userState } = useUser(); // Get user state
+  const router = useRouter(); // For navigation
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  // Function to handle order submission
+  const handleOrderSubmission = async (orderDetails: any) => {
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit order');
+      }
+
+      const data = await response.json();
+      console.log('Order submitted successfully:', data);
+      router.push('/dashboard'); // Redirect to dashboard or another page
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert('There was an error processing your order.');
+    }
+  };
 
   return (
     <div className="p-10">
@@ -51,11 +78,23 @@ const Checkout: React.FC = () => {
                   }],
                 });
               }}
-              onApprove={(data: any, actions: any) => {
-                return actions.order.capture().then((details: any) => {
-                  alert('Transaction completed by ' + details.payer.name.given_name);
-                  // Here you could also dispatch an action to save the order details in your database
-                });
+              onApprove={async (data: any, actions: any) => {
+                const details = await actions.order.capture();
+                alert('Transaction completed by ' + details.payer.name.given_name);
+
+                // Prepare order details to be saved
+                const orderDetails = {
+                  userId: userState.user ? userState.user._id : null, // Use _id directly since it's now a string
+                  items: state.items,
+                  total: totalPrice,
+                };
+
+                // Ensure userId is not null before submitting order
+                if (orderDetails.userId) {
+                  await handleOrderSubmission(orderDetails);
+                } else {
+                  alert('User not authenticated. Please log in.');
+                }
               }}
               onError={(err: any) => {
                 console.error('PayPal Checkout onError', err);
@@ -64,9 +103,6 @@ const Checkout: React.FC = () => {
             />
           </div>
         </PayPalScriptProvider>
-
-        
-        
       </div>
     </div>
   );

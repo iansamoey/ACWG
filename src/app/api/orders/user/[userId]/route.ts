@@ -1,39 +1,20 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+// src/app/api/orders/user/[userId]/route.ts
 import dbConnect from '@/lib/db';
-import OrderModel, { IOrder } from '@/models/Order';
+import Order, { IOrder } from '@/models/Order'; // Ensure the import is correct
+import { NextResponse } from 'next/server';
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-    await dbConnect();
+dbConnect();
 
-    const { userId } = req.query;
+export async function GET(req: Request, { params }: { params: { userId: string } }) {
+  try {
+    const { userId } = params;
+    
+    // Fetch orders for the user
+    const orders: IOrder[] = await Order.find({ userId }).populate('userId');
 
-    switch (req.method) {
-        case 'GET':
-            try {
-                const ordersData = await OrderModel.find({ userId }).lean();
-
-                // Map ordersData to a plain array without type assertion
-                const orders = ordersData.map(order => ({
-                    _id: order._id.toString(),
-                    title: order.title,
-                    status: order.status,
-                    userId: order.userId,
-                }));
-
-                res.status(200).json(orders);
-            } catch (error) {
-                console.error(error);
-                res.status(500).json({ message: 'Error fetching orders for user' });
-            }
-            break;
-
-        // You can add other cases here (e.g., POST, PUT, DELETE) as needed
-
-        default:
-            res.setHeader('Allow', ['GET']);
-            res.status(405).end(`Method ${req.method} Not Allowed`);
-            break;
-    }
-};
-
-export default handler;
+    return NextResponse.json(orders, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return NextResponse.json({ message: 'Error fetching orders' }, { status: 500 });
+  }
+}
