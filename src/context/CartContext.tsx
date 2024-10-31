@@ -1,4 +1,6 @@
 // src/context/CartContext.tsx
+'use client'; // Add this line to indicate this is a client component
+
 import React, { createContext, useReducer, useContext } from 'react';
 
 interface CartItem {

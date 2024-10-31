@@ -2,6 +2,7 @@
 "use client"; // Ensures layout can use client-side components
 
 import './globals.css';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js'; // Import PayPalScriptProvider
 import { CartProvider } from '../context/CartContext';
 import { UserProvider } from '../context/UserContext';
 
@@ -13,9 +14,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UserProvider>
-          <CartProvider>{children}</CartProvider>
-        </UserProvider>
+        <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}>
+          <UserProvider>
+            <CartProvider>{children}</CartProvider>
+          </UserProvider>
+        </PayPalScriptProvider>
       </body>
     </html>
   );
