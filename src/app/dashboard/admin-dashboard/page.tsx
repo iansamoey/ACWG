@@ -4,6 +4,7 @@ import { useState } from "react";
 import ManageUsers from "@/app/dashboard/manage-users/page";
 import ManageContent from "@/app/dashboard/manage-content/page";
 import ViewOrders from "@/app/dashboard/view-orders/page";
+import CreateAdmin from "@/app/dashboard/create-admin/page"; // Import the CreateAdmin component
 import {
   Sidebar,
   SidebarHeader,
@@ -27,6 +28,8 @@ export default function AdminDashboard() {
         return <ManageContent />;
       case "ViewOrders":
         return <ViewOrders />;
+      case "CreateAdmin": // Add a case for the new CreateAdmin page
+        return <CreateAdmin />;
       default:
         return null;
     }
@@ -62,6 +65,15 @@ export default function AdminDashboard() {
                   <Link href="#" onClick={() => setCurrentPage("ViewOrders")} className="flex items-center gap-2">
                     <ShoppingCart className="h-4 w-4" />
                     <span>View Orders</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              {/* Add the new Create Admin menu item */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="#" onClick={() => setCurrentPage("CreateAdmin")} className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>Create Admin</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

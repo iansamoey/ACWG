@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 
 const SignupPage = () => {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState(''); // Added email state
     const [password, setPassword] = useState('');
     const router = useRouter();
 
@@ -12,7 +13,7 @@ const SignupPage = () => {
         const response = await fetch('/api/users/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, email, password }), // Include email in the request
         });
         const data = await response.json();
         alert(data.message);
@@ -31,11 +32,20 @@ const SignupPage = () => {
                     className="border p-2 mb-4 w-full rounded" 
                 />
                 <input 
+                    type="email" // Change type to email
+                    placeholder="Email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    className="border p-2 mb-4 w-full rounded" 
+                    required // Mark field as required
+                />
+                <input 
                     type="password" 
                     placeholder="Password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                     className="border p-2 mb-4 w-full rounded" 
+                    required // Mark field as required
                 />
                 <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">Sign Up</button>
             </form>

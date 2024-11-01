@@ -1,14 +1,17 @@
 // src/app/checkout/page.tsx
+
+'use client'; // This directive makes the component a client component
+
 import React from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useCart } from '../../context/CartContext';
-import { useUser } from '../../context/UserContext'; // Import UserContext
-import { useRouter } from 'next/router'; // Import useRouter for navigation
+import { useUser } from '../../context/UserContext';
+import { useRouter } from 'next/navigation';
 
 const Checkout: React.FC = () => {
   const { state } = useCart();
-  const { state: userState } = useUser(); // Get user state
-  const router = useRouter(); // For navigation
+  const { state: userState } = useUser();
+  const router = useRouter();
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   // Function to handle order submission
@@ -48,7 +51,7 @@ const Checkout: React.FC = () => {
               {state.items.map(item => (
                 <li key={item.id} className="flex justify-between border-b py-2">
                   <span>{item.name} (x{item.quantity})</span>
-                  <span>${item.price * item.quantity}</span>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
                 </li>
               ))}
             </ul>
@@ -84,7 +87,7 @@ const Checkout: React.FC = () => {
 
                 // Prepare order details to be saved
                 const orderDetails = {
-                  userId: userState.user ? userState.user._id : null, // Use _id directly since it's now a string
+                  userId: userState.user ? userState.user._id : null,
                   items: state.items,
                   total: totalPrice,
                 };
