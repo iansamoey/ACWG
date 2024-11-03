@@ -26,13 +26,13 @@ const Checkout: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit order');
+        throw new Error('Failed to submit order'); // Handle error if response is not OK
       }
 
       const data = await response.json();
       console.log('Order submitted successfully:', data);
       router.push('/dashboard'); // Redirect to dashboard or another page
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error submitting order:', error);
       alert('There was an error processing your order.');
     }
@@ -87,14 +87,14 @@ const Checkout: React.FC = () => {
 
                 // Prepare order details to be saved
                 const orderDetails = {
-                  userId: userState.user ? userState.user._id : null,
+                  userId: userState.user ? userState.user._id : null, // Ensure you get the user ID
                   items: state.items,
                   total: totalPrice,
                 };
 
                 // Ensure userId is not null before submitting order
                 if (orderDetails.userId) {
-                  await handleOrderSubmission(orderDetails);
+                  await handleOrderSubmission(orderDetails); // Call the order submission function
                 } else {
                   alert('User not authenticated. Please log in.');
                 }

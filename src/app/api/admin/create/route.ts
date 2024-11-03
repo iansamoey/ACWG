@@ -1,4 +1,3 @@
-// src/app/api/admin/create/route.ts
 import { NextResponse } from 'next/server';
 import User from '@/models/User'; // Adjust the import based on your project structure
 import dbConnect from '@/lib/db'; // Import your DB connection utility
@@ -8,12 +7,20 @@ export async function POST(req: Request) {
   await dbConnect(); // Connect to the database
   const { username, email, password } = await req.json();
 
+  // Log the incoming request payload
+  console.log("Incoming request payload:", { username, email, password });
+
+  // Validate input
+  if (!username || !email || !password) {
+    return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+  }
+
   try {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
 
     // Create a new admin with the hashed password
-    const newAdmin = new User({ 
+    const newAdmin = new User({
       username, 
       email, 
       password: hashedPassword, // Use the hashed password

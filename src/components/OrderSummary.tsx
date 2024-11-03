@@ -1,17 +1,19 @@
+// src/components/OrderSummary.tsx
+
 import React from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
-import { CartItem } from '../types'; // Ensure CartItem is imported
-import { PayPalButtons } from '@paypal/react-paypal-js'; // Import PayPalButtons
+import { CartItem } from '../types'; 
+import { PayPalButtons } from '@paypal/react-paypal-js';
 
 const OrderSummary: React.FC<{ cartItems: CartItem[] }> = ({ cartItems }) => {
   const { state } = useCart();
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   const handleProceedToCardPayment = () => {
-    router.push('/card-payment'); // Navigate to debit/credit card payment interface
+    router.push('/card-payment'); 
   };
 
   return (
@@ -36,9 +38,8 @@ const OrderSummary: React.FC<{ cartItems: CartItem[] }> = ({ cartItems }) => {
         </div>
       )}
       <div className="mt-4">
-        {/* PayPal Buttons */}
         <PayPalButtons
-          createOrder={(data: any, actions: any) => {  // Use 'any' for actions
+          createOrder={(data: any, actions: any) => {
             return actions.order.create({
               purchase_units: [{
                 amount: {
@@ -47,18 +48,18 @@ const OrderSummary: React.FC<{ cartItems: CartItem[] }> = ({ cartItems }) => {
               }],
             });
           }}
-          onApprove={async (data: any, actions: any) => {  // Use 'any' for actions
+          onApprove={async (data: any, actions: any) => {
             const details = await actions.order.capture();
             console.log('Transaction completed by ' + details.payer.name.given_name);
-            // Add any additional logic here (like updating the order in your database)
-            // Optionally redirect or display a success message
+            // Add logic here to save the order to your database
           }}
-          onError={(err: any) => {  // Use 'any' for error
+          onError={(err: any) => {
             console.error('PayPal Checkout Error', err);
-            // Handle error
           }}
         />
-        
+        <button onClick={handleProceedToCardPayment} className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Pay with Card
+        </button>
       </div>
     </div>
   );

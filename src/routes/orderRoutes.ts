@@ -5,24 +5,24 @@ const router = express.Router();
 
 // Create a new order
 router.post('/', async (req, res) => {
-    const { userId, essayRequestId, status } = req.body;
-    const order = new Order({ userId, essayRequestId, status });
+    const { userId, items, total } = req.body;
+    const newOrder = new Order({ userId, items, total });
 
     try {
-        const savedOrder = await order.save();
+        const savedOrder = await newOrder.save();
         res.status(201).json(savedOrder);
-    } catch (error: any) {  // Explicitly typing error
-        res.status(400).json({ message: error.message }); // Access message safely
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
     }
 });
 
-// Get all orders
+// Get all orders (for admin use)
 router.get('/', async (req, res) => {
     try {
-        const orders = await Order.find().populate('userId essayRequestId');
+        const orders = await Order.find(); // Fetch all orders
         res.status(200).json(orders);
-    } catch (error: any) {  // Explicitly typing error
-        res.status(500).json({ message: error.message }); // Access message safely
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
     }
 });
 

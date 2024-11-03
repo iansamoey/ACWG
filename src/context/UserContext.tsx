@@ -1,11 +1,9 @@
-// src/context/UserContext.tsx
 "use client"; // Mark this file as a client component
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // Define the type for your user state
 export interface Request {
-  // Define the properties of a request based on your application logic
   id: string;
   description: string;
   status: string; // You can adjust these fields as necessary
@@ -38,7 +36,10 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const userReducer = (state: UserState, action: any): UserState => {
   switch (action.type) {
-    // Define your cases for actions
+    case 'LOGIN':
+      return { ...state, user: action.payload }; // Set user on login
+    case 'LOGOUT':
+      return { ...state, user: null }; // Reset user state on logout
     default:
       return state;
   }

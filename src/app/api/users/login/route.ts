@@ -5,14 +5,17 @@ import { MongoClient } from 'mongodb';
 const client = new MongoClient(process.env.MONGODB_URI);
 
 export async function POST(request: Request) {
-    const { username, password } = await request.json();
+    const { identifier, password } = await request.json();
 
     try {
         await client.connect();
         const db = client.db();
 
-        // Find the user
-        const user = await db.collection('users').findOne({ username });
+        // Find the user by username or email
+        const user = await db.collection('users').findOne({
+            $or: [{ username: identifier }, { email: identifier }]
+        });
+        
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
@@ -24,7 +27,10 @@ export async function POST(request: Request) {
         }
 
         // User login successful
-        return NextResponse.json({ message: 'Login successful' });
+        return NextResponse.json({
+            message: 'Login successful',
+            isAdmin: user.isAdmin // Include isAdmin status in the response
+        });
     } catch (error) {
         return NextResponse.json({ message: 'Error logging in' }, { status: 500 });
     } finally {

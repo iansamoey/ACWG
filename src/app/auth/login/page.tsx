@@ -1,9 +1,10 @@
-"use client"; 
-import { useState } from 'react'; 
+"use client";
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
+    const [identifier, setIdentifier] = useState(''); // Combined field for username/email
     const [password, setPassword] = useState('');
     const router = useRouter();
 
@@ -12,11 +13,20 @@ const LoginPage = () => {
         const response = await fetch('/api/users/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ identifier, password }),
         });
         const data = await response.json();
-        alert(data.message);
-        if (response.ok) router.push('/dashboard/userDashboard');
+        
+        if (response.ok) {
+            // Check if user is an admin based on the response
+            if (data.isAdmin) {
+                router.push('/dashboard/admin-dashboard'); // Redirect to admin dashboard
+            } else {
+                router.push('/dashboard/userDashboard'); // Redirect to user dashboard
+            }
+        } else {
+            alert(data.message);
+        }
     };
 
     return (
@@ -25,9 +35,9 @@ const LoginPage = () => {
                 <h2 className="text-2xl font-bold mb-4">Log In</h2>
                 <input 
                     type="text" 
-                    placeholder="Username" 
-                    value={username} 
-                    onChange={(e) => setUsername(e.target.value)} 
+                    placeholder="Username or Email"
+                    value={identifier} 
+                    onChange={(e) => setIdentifier(e.target.value)} 
                     className="border p-2 mb-4 w-full rounded" 
                 />
                 <input 

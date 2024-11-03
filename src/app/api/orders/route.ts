@@ -1,43 +1,32 @@
-import dbConnect from '../../../lib/db';
-import Order from '../../../models/Order';
+// src/app/api/orders/route.ts
 
-dbConnect(); // Ensure database connection is established
+import dbConnect from '@/lib/db';
+import Order from '@/models/Order';
+import { NextResponse } from 'next/server';
 
-// Handler function for POST (creating a new order) and GET (retrieving orders)
 export async function POST(req: Request) {
-  try {
-    const { userId, items, total } = await req.json();
+    await dbConnect(); // Ensure database connection
 
-    // Create a new order
-    const newOrder = new Order({
-      userId,
-      items,
-      total,
-    });
+    try {
+        const body = await req.json();
 
-    // Save the order to the database
-    await newOrder.save();
+        // Validate request body
+        if (!body.userId || !body.items || !body.total) {
+            return NextResponse.json({ message: 'Invalid request data' }, { status: 400 });
+        }
 
-    return new Response(JSON.stringify(newOrder), { status: 201 });
-  } catch (error) {
-    console.error('Error creating order:', error);
-    return new Response(JSON.stringify({ message: 'Error creating order' }), { status: 500 });
-  }
-}
+        // Create new order document
+        const order = new Order({
+            userId: body.userId,
+            items: body.items,
+            total: body.total,
+            status: 'pending'
+        });
 
-export async function GET(req: Request) {
-  try {
-    const userId = req.headers.get('user-id'); // Get user ID from headers or adjust this to your method of retrieving user ID
-
-    if (!userId) {
-      return new Response(JSON.stringify({ message: 'User ID is required' }), { status: 400 });
+        const savedOrder = await order.save();
+        return NextResponse.json(savedOrder, { status: 201 });
+    } catch (error) {
+        console.error('Error creating order:', error);
+        return NextResponse.json({ message: 'Failed to create order' }, { status: 500 });
     }
-
-    // Retrieve all orders associated with the userId
-    const orders = await Order.find({ userId });
-    return new Response(JSON.stringify(orders), { status: 200 });
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    return new Response(JSON.stringify({ message: 'Error fetching orders' }), { status: 500 });
-  }
 }
