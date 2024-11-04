@@ -1,28 +1,14 @@
-// src/models/Order.ts
+// File: src/models/Order.ts
+import mongoose from 'mongoose';
 
-import mongoose, { Schema, Document } from 'mongoose';
+const OrderSchema = new mongoose.Schema({
+    service: { type: String, required: true },
+    date: { type: Date, required: true },
+    details: { type: String, required: true },
+    total: { type: Number, required: true },
+    status: { type: String, default: 'pending' },
+    createdAt: { type: Date, default: Date.now },
+});
 
-export interface IOrder extends Document {
-  userId: mongoose.Schema.Types.ObjectId;
-  items: { id: string; name: string; price: number; quantity: number }[];
-  total: number;
-  status: string;
-  createdAt: Date;
-}
-
-const OrderSchema: Schema = new Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  items: [{ 
-    id: String,
-    name: String,
-    price: Number,
-    quantity: Number 
-  }],
-  total: { type: Number, required: true },
-  status: { type: String, default: 'pending' },
-  createdAt: { type: Date, default: Date.now }
-}, { collection: 'orders' }); // Specifies 'orders' collection
-
-const Order = mongoose.model<IOrder>('Order', OrderSchema);
-
+const Order = mongoose.models.Order || mongoose.model('Order', OrderSchema);
 export default Order;

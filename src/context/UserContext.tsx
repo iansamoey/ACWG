@@ -10,7 +10,8 @@ export interface Request {
 }
 
 export interface User {
-  _id: string; // Make sure _id is included
+  id: string; // Added this line to include the id field derived from _id
+  _id: string; // Make sure _id is included for MongoDB compatibility
   email: string; // Add any other properties you want
   isAdmin: boolean; // Add admin property if applicable
   requests: Request[]; // Include requests array
@@ -34,10 +35,14 @@ const initialState: UserState = {
 // Create context with a default value
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Reducer to manage user state
 const userReducer = (state: UserState, action: any): UserState => {
   switch (action.type) {
     case 'LOGIN':
-      return { ...state, user: action.payload }; // Set user on login
+      return {
+        ...state,
+        user: { ...action.payload, id: action.payload._id }, // Set user on login with derived id
+      };
     case 'LOGOUT':
       return { ...state, user: null }; // Reset user state on logout
     default:
@@ -45,6 +50,7 @@ const userReducer = (state: UserState, action: any): UserState => {
   }
 };
 
+// Provider component
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(userReducer, initialState);
 
@@ -55,6 +61,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// Hook to use the user context
 export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {

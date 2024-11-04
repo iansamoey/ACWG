@@ -1,32 +1,38 @@
-// src/app/api/orders/route.ts
-
+// File: src/app/api/orders/route.ts
+import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Order from '@/models/Order';
-import { NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
-    await dbConnect(); // Ensure database connection
-
+export async function POST(request: Request) {
     try {
-        const body = await req.json();
+        await dbConnect();
 
-        // Validate request body
-        if (!body.userId || !body.items || !body.total) {
-            return NextResponse.json({ message: 'Invalid request data' }, { status: 400 });
+        const { service, date, details, total } = await request.json();
+
+        if (!service || !date || !details || !total) {
+            return NextResponse.json(
+                { error: 'All fields are required' },
+                { status: 400 }
+            );
         }
 
-        // Create new order document
-        const order = new Order({
-            userId: body.userId,
-            items: body.items,
-            total: body.total,
-            status: 'pending'
+        const newOrder = new Order({
+            service,
+            date,
+            details,
+            total,
+            status: 'pending', // Or any initial status you prefer
+            createdAt: new Date(),
         });
 
-        const savedOrder = await order.save();
-        return NextResponse.json(savedOrder, { status: 201 });
+        await newOrder.save();
+        
+        return NextResponse.json({ message: 'Order saved successfully', order: newOrder }, { status: 201 });
     } catch (error) {
-        console.error('Error creating order:', error);
-        return NextResponse.json({ message: 'Failed to create order' }, { status: 500 });
+        console.error('Error saving order:', error);
+        return NextResponse.json(
+            { error: 'Failed to save order' },
+            { status: 500 }
+        );
     }
 }

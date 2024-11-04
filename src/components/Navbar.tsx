@@ -15,9 +15,7 @@ const Navbar: React.FC = () => {
           <Link href="/services" passHref>
             <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">View Services</button>
           </Link>
-          <Link href="/order" passHref>
-            <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">Order Now</button>
-          </Link>
+      
           <Link href="/dashboard/admin-dashboard" passHref>
             <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">Admin Dashboard</button>
           </Link>

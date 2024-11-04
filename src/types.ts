@@ -14,3 +14,10 @@ export interface CartItem {
   price: number;   // The price of the service
   quantity: number; // Quantity of the service
 }
+
+export interface User {
+  _id: string; 
+  id: string; // Ensure the id property is defined
+  email: string;
+  isAdmin?: boolean; // Optional if it's not always set
+}
