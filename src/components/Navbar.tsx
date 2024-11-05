@@ -16,12 +16,7 @@ const Navbar: React.FC = () => {
             <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">View Services</button>
           </Link>
       
-          <Link href="/dashboard/admin-dashboard" passHref>
-            <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">Admin Dashboard</button>
-          </Link>
-          <Link href="/dashboard/userDashboard" passHref>
-            <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">User Dashboard</button>
-          </Link>
+         
           <Link href="/checkout" passHref>
             <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">
               Cart ({state?.items.length ?? 0}) {/* Display the number of items in the cart */}
