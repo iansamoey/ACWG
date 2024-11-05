@@ -8,7 +8,7 @@ import Sidebar from '../../../components/Sidebar';
 import OrderStatus from '@/components/OrderStatus';
 import CartStatus from '@/components/CartStatus';
 import Services from '../../../app/services/page'; // Import the Services component
-import OrderForm from './OrderForm'; // Correctly import OrderForm from the userDashboard directory
+import NewOrderForm from './NewOrderForm';
 
 const UserDashboard: React.FC = () => {
   const { state: userState } = useUser();
@@ -23,13 +23,13 @@ const UserDashboard: React.FC = () => {
       <Sidebar setActiveTab={setActiveTab} />
       <div className="ml-64 w-full">
         <h1 className="text-3xl font-bold mb-4">User Dashboard</h1>
-
+        <NewOrderForm />
         {/* Conditional Rendering for Content Based on Selected Tab */}
         {activeTab === 'order-summary' && <OrderSummary cartItems={cartState.items} />}
         {activeTab === 'order-status' && <OrderStatus />}
         {activeTab === 'cart-status' && <CartStatus />}
         {activeTab === 'services' && <Services />} {/* Render Services component */}
-        {activeTab === 'order-form' && <OrderForm />} {/* Render OrderForm component */}
+        
       </div>
     </div>
   );
