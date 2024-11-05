@@ -21,3 +21,10 @@ export interface User {
   email: string;
   isAdmin?: boolean; // Optional if it's not always set
 }
+
+export interface Service {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+}

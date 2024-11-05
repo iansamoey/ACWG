@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 
 import { useState } from "react";
 import ManageUsers from "@/app/dashboard/manage-users/page";
@@ -15,10 +15,12 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { Users, FileText, ShoppingCart } from "lucide-react";
+import { Users, FileText, ShoppingCart, LogOut } from "lucide-react"; // Import LogOut icon
+import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
 
 export default function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState("ManageUsers");
+  const router = useRouter(); // Initialize useRouter
 
   const renderContent = () => {
     switch (currentPage) {
@@ -33,6 +35,11 @@ export default function AdminDashboard() {
       default:
         return null;
     }
+  };
+
+  const handleSignOut = () => {
+    // Clear any user data if needed and redirect to the main page
+    router.push('/'); // Redirect to the main page (src/app/page.tsx)
   };
 
   return (
@@ -77,6 +84,19 @@ export default function AdminDashboard() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {/* Add Sign Out menu item */}
+              <SidebarMenuItem>
+  <SidebarMenuButton asChild>
+    <button 
+      onClick={handleSignOut} 
+      className="flex items-center gap-2 w-full text-left"
+    >
+      <LogOut className="h-4 w-4" />
+      <span>Sign Out</span>
+    </button>
+  </SidebarMenuButton>
+</SidebarMenuItem>
+
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>

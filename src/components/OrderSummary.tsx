@@ -1,22 +1,17 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
-import { CartItem } from '../types';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 
-// Define custom types based on PayPal SDK structure
-type CreateOrderData = Record<string, unknown>;
-type OnApproveData = { orderID: string };
-type OnApproveActions = { order: { capture: () => Promise<any> } };
-type CreateOrderActions = { order: { create: (orderDetails: any) => Promise<string> } };
-
-const OrderSummary: React.FC<{ cartItems: CartItem[] }> = ({ cartItems }) => {
+const OrderSummary: React.FC = () => {
   const { state } = useCart();
   const router = useRouter();
 
+  // Calculate total price from cart items
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
-
-  const userId = 'currentUserId'; // Replace with actual userId from session/context
+  
+  // Replace with actual userId from session/context
+  const userId = 'currentUserId'; 
 
   const handleProceedToCardPayment = () => {
     router.push('/card-payment');
@@ -25,29 +20,38 @@ const OrderSummary: React.FC<{ cartItems: CartItem[] }> = ({ cartItems }) => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
-      {/* Render cart items */}
+      <ul>
+        {state.items.map((item) => (
+          <li key={item.id} className="flex justify-between border-b py-2">
+            <span>{item.name} (x{item.quantity})</span>
+            <span>${(item.price * item.quantity).toFixed(2)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 font-bold">Total: ${totalPrice.toFixed(2)}</div>
+
       <div className="mt-4">
         <PayPalButtons
-          createOrder={(data: CreateOrderData, actions: CreateOrderActions) => {
+          createOrder={(data: Record<string, unknown>, actions: { order: { create: (orderDetails: any) => Promise<string> } }) => {
             return actions.order.create({
               purchase_units: [{
                 amount: { value: totalPrice.toFixed(2) },
               }],
             });
           }}
-          onApprove={async (data: OnApproveData, actions: OnApproveActions) => {
+          onApprove={async (data: { orderID: string }, actions: { order: { capture: () => Promise<any> } }) => {
             const details = await actions.order.capture();
 
-            // Save order in the database
+            // Create the order in your database after capturing payment
             await fetch('/api/orders', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                userId,  // Include userId
-                service: 'Service Name Here',  // Customize as needed
-                date: new Date().toISOString(),
-                details: 'Order details from cart',
-                total: totalPrice,
+                userId, // Use the actual user ID
+                items: state.items, // Send all items in the cart
+                total: totalPrice, // Total price
+                createdAt: new Date().toISOString(),
+                status: 'Completed', // Adjust as needed
               }),
             });
 
@@ -55,10 +59,9 @@ const OrderSummary: React.FC<{ cartItems: CartItem[] }> = ({ cartItems }) => {
           }}
           onError={(err: unknown) => console.error('PayPal Checkout Error', err)}
         />
-        <button onClick={handleProceedToCardPayment} className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          Pay with Card
-        </button>
       </div>
+
+      
     </div>
   );
 };

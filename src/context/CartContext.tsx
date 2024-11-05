@@ -1,4 +1,3 @@
-// src/context/CartContext.tsx
 'use client'; // Add this line to indicate this is a client component
 
 import React, { createContext, useReducer, useContext } from 'react';
@@ -23,12 +22,15 @@ const initialState: CartState = {
   items: [],
 };
 
+// Update the context type to include the removeFromCart function
 const CartContext = createContext<{
   state: CartState;
   dispatch: React.Dispatch<Action>;
+  removeFromCart: (id: string) => void; // Add removeFromCart to the type
 }>({
   state: initialState,
   dispatch: () => null,
+  removeFromCart: () => null, // Default implementation for type safety
 });
 
 const cartReducer = (state: CartState, action: Action) => {
@@ -56,13 +58,19 @@ const cartReducer = (state: CartState, action: Action) => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
+  // Function to remove an item from the cart
+  const removeFromCart = (id: string) => {
+    dispatch({ type: 'REMOVE_ITEM', payload: id });
+  };
+
   return (
-    <CartContext.Provider value={{ state, dispatch }}>
+    <CartContext.Provider value={{ state, dispatch, removeFromCart }}>
       {children}
     </CartContext.Provider>
   );
 };
 
+// Custom hook to use the CartContext
 export const useCart = () => {
   return useContext(CartContext);
 };
