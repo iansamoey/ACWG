@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client"; // Ensure this is a client component
 
 import React from 'react';
