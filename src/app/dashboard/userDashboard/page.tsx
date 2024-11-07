@@ -1,5 +1,3 @@
-// src/app/dashboard/userDashboard/page.tsx
-
 "use client";
 
 import React, { useState } from 'react';
@@ -9,7 +7,8 @@ import OrderSummary from '../../../components/OrderSummary';
 import Sidebar from '../../../components/Sidebar';
 import OrderStatus from '@/components/OrderStatus';
 import CartStatus from '@/components/CartStatus';
-import Services from '../../../app/services/page'; // Import the Services component
+import Services from '../../../app/services/page';
+import OrderForm from '@/components/OrderForm'; // Import the OrderForm component
 
 const UserDashboard: React.FC = () => {
   const { state: userState } = useUser();
@@ -29,8 +28,8 @@ const UserDashboard: React.FC = () => {
         {activeTab === 'order-summary' && <OrderSummary />}
         {activeTab === 'order-status' && <OrderStatus />}
         {activeTab === 'cart-status' && <CartStatus />}
-        {activeTab === 'services' && <Services />} {/* Render Services component */}
-        
+        {activeTab === 'services' && <Services />}
+        {activeTab === 'order-form' && <OrderForm />} {/* Render OrderForm when activeTab is 'order-form' */}
       </div>
     </div>
   );

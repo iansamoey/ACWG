@@ -1,3 +1,4 @@
+// src/app/api/login/route.ts
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { MongoClient } from 'mongodb';
@@ -29,7 +30,9 @@ export async function POST(request: Request) {
         // User login successful
         return NextResponse.json({
             message: 'Login successful',
-            isAdmin: user.isAdmin // Include isAdmin status in the response
+            userId: user._id, // Send user ID along with user data
+            email: user.email,
+            isAdmin: user.isAdmin
         });
     } catch (error) {
         return NextResponse.json({ message: 'Error logging in' }, { status: 500 });

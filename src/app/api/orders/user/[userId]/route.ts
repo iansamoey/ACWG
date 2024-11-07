@@ -1,19 +1,38 @@
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Order from '@/models/Order';
-import { NextResponse } from 'next/server';
 
-dbConnect();
+export async function POST(req: NextRequest, context: { params: { userId: string } }) {
+  await dbConnect();
+  const { userId } = context.params;
 
-export async function GET(req: Request, { params }: { params: { userId: string } }) {
   try {
-    const { userId } = params;
-    
-    // Fetch orders for the user
-    const orders = await Order.find({ userId }).populate('userId');
+    const { items, total, status } = await req.json();
 
-    return NextResponse.json(orders, { status: 200 });
+    // Validate the request body
+    if (!items || !total || typeof total !== 'number') {
+      return NextResponse.json({ error: 'Invalid request: items and total are required' }, { status: 400 });
+    }
+
+    const [item] = items;
+    const { serviceName, description, price } = item;
+
+    // Create a new order
+    const newOrder = new Order({
+      userId,
+      serviceName,
+      description,
+      price,
+      total,
+      status: status || 'pending', // Default status
+      createdAt: new Date(),
+    });
+
+    // Save order to database
+    const savedOrder = await newOrder.save();
+    return NextResponse.json(savedOrder, { status: 201 });
   } catch (error) {
-    console.error('Error fetching orders:', error);
-    return NextResponse.json({ message: 'Error fetching orders' }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
   }
 }

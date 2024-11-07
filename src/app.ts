@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import userRoutes from './routes/userRoutes';
 import orderRoutes from './routes/orderRoutes';
-import essayRequestRoutes from './routes/essayRequestRoutes';
+
 
 const app = express();
 
@@ -19,7 +19,7 @@ mongoose.connect(MONGODB_URI)
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/essay-requests', essayRequestRoutes);
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;

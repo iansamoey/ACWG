@@ -2,30 +2,46 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '../../../context/UserContext'; // Assuming this is the correct path
 
 const LoginPage = () => {
     const [identifier, setIdentifier] = useState(''); // Combined field for username/email
     const [password, setPassword] = useState('');
+    const { dispatch } = useUser(); // Get dispatch function to update the context
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Call login API
         const response = await fetch('/api/users/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ identifier, password }),
         });
+        
         const data = await response.json();
         
         if (response.ok) {
-            // Check if user is an admin based on the response
+            // Check if the user is admin and update context
+            dispatch({
+                type: 'LOGIN',
+                payload: {
+                    id: data.userId, // Assuming you send userId in the response
+                    email: data.email, // Assuming you send email in the response
+                    isAdmin: data.isAdmin,
+                    requests: []
+                },
+            });
+
+            // Redirect based on admin status
             if (data.isAdmin) {
-                router.push('/dashboard/admin-dashboard'); // Redirect to admin dashboard
+                router.push('/dashboard/admin-dashboard');
             } else {
-                router.push('/dashboard/userDashboard'); // Redirect to user dashboard
+                router.push('/dashboard/userDashboard');
             }
         } else {
-            alert(data.message);
+            alert(data.message); // Show the error message
         }
     };
 
