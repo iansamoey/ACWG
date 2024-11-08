@@ -1,29 +1,47 @@
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db'; // Adjust this path as necessary
-import Order from '@/models/Order'; // Adjust this path as necessary
-import { getSession } from 'next-auth/react'; // If using NextAuth for user sessions
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import Order from "@/models/Order";
+import User from "@/models/User"; // Ensure you have imported your User model
 
-export async function POST(request: Request) {
-  const session = await getSession(); // Get the user session
-  if (!session) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
+export async function GET() {
+  await dbConnect();
 
-  const body = await request.json();
-  
-  // Create a new order with userId and cart items
   try {
-    await dbConnect(); // Ensure database connection is established
-    const newOrder = await Order.create({
-      userId: session.user.id, // Assuming session.user.id contains the user ID
-      items: body.items,
-      total: body.total,
-      status: 'Pending', // Adjust based on your order status logic
-      createdAt: new Date(),
-    });
-    
-    return NextResponse.json(newOrder, { status: 201 });
+    // Fetch orders with user details using aggregation or populate (if you have user references)
+    const orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: "users", // Collection name for users
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          userId: 1,
+          serviceName: 1,
+          description: 1,
+          price: 1,
+          total: 1,
+          status: 1,
+          createdAt: 1,
+          "userDetails.username": 1,
+          "userDetails.email": 1,
+        },
+      },
+    ]);
+
+    return NextResponse.json(orders, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: 'Error creating order' }, { status: 500 });
+    console.error("Error fetching orders:", error);
+    return NextResponse.json({ message: "Failed to fetch orders" }, { status: 500 });
   }
 }

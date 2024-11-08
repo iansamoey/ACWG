@@ -36,7 +36,8 @@ const OrderForm: React.FC = () => {
 
     if (response.ok) {
       alert('Order submitted successfully');
-      router.push('/dashboard');
+      // Navigate back to the user dashboard
+      router.push('/dashboard/userDashboard');
     } else {
       alert('Error submitting order');
     }
