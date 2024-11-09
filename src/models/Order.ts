@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 interface IOrder extends Document {
   userId: string;
@@ -16,10 +16,7 @@ const orderSchema = new Schema<IOrder>({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   total: { type: Number, required: true },
-  status: { type: String, default: 'pending' },
-  createdAt: { type: Date, default: Date.now },
+  status: { type: String, default: "pending" },
 }, { timestamps: true });
 
-const Order = mongoose.models.Order || mongoose.model<IOrder>('Order', orderSchema);
-
-export default Order;
+export default mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);
