@@ -12,21 +12,20 @@ interface Order {
   total: number;
   status: string;
   createdAt: Date;
+  user?: {
+    username: string;
+    email: string;
+  };
 }
 
 const ViewOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>("All");
-  const [statuses] = useState<string[]>([
-    "All",
-    "Pending",
-    "In Progress",
-    "Completed",
-    "Cancelled",
-  ]);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
+  // Fetch orders and user details
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -34,8 +33,31 @@ const ViewOrders: React.FC = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch orders");
         }
-        const data = await response.json();
-        setOrders(data);
+        const ordersData: Order[] = await response.json();
+
+        // Fetch user details for each order based on userId
+        const ordersWithUserDetails = await Promise.all(
+          ordersData.map(async (order) => {
+            try {
+              const userResponse = await fetch(`/api/users/${order.userId}`);
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                return {
+                  ...order,
+                  user: {
+                    username: userData.username,
+                    email: userData.email,
+                  },
+                };
+              }
+            } catch (userError) {
+              console.error("Error fetching user details:", userError);
+            }
+            return order;
+          })
+        );
+
+        setOrders(ordersWithUserDetails);
       } catch (error: any) {
         setError(error.message);
       } finally {
@@ -47,38 +69,40 @@ const ViewOrders: React.FC = () => {
   }, []);
 
   // Function to update order status
-  const updateOrderStatus = async (orderId: string, status: string) => {
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    setUpdatingStatus(orderId); // Set updating status to show a spinner
     try {
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: newStatus }),
       });
-
       if (!response.ok) {
-        throw new Error("Failed to update order status");
+        throw new Error("Failed to update status");
       }
 
-      const updatedOrder = await response.json();
+      // Update the local state
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order._id === orderId ? updatedOrder : order
+          order._id === orderId ? { ...order, status: newStatus } : order
         )
       );
     } catch (error) {
-      console.error(error);
-      alert("Error updating order status");
+      console.error("Error updating status:", error);
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
-  // Filter orders based on selected status
+  // Filtered orders based on statusFilter
   const filteredOrders =
-    selectedStatus === "All"
+    statusFilter === "all"
       ? orders
-      : orders.filter((order) => order.status === selectedStatus);
+      : orders.filter((order) => order.status === statusFilter);
 
+  // Loading spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -87,6 +111,7 @@ const ViewOrders: React.FC = () => {
     );
   }
 
+  // Error message
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -96,23 +121,26 @@ const ViewOrders: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-4xl bg-white rounded shadow-md p-6">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-5xl bg-white rounded shadow-md p-6 ml-80">
         <h1 className="text-2xl font-bold mb-4">View Orders</h1>
-        
+
         {/* Status Filter */}
         <div className="mb-4">
-          <label className="mr-2 font-semibold">Filter by Status:</label>
+          <label htmlFor="status-filter" className="mr-2 font-semibold">
+            Filter by Status:
+          </label>
           <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            id="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="border rounded px-2 py-1"
           >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </div>
 
@@ -120,8 +148,11 @@ const ViewOrders: React.FC = () => {
           <thead>
             <tr className="bg-gray-200">
               <th className="py-2 px-4 border-b">Order ID</th>
+              <th className="py-2 px-4 border-b">User Name</th>
+              <th className="py-2 px-4 border-b">Email</th>
               <th className="py-2 px-4 border-b">Service Name</th>
               <th className="py-2 px-4 border-b">Description</th>
+              <th className="py-2 px-4 border-b">Price</th>
               <th className="py-2 px-4 border-b">Total</th>
               <th className="py-2 px-4 border-b">Status</th>
               <th className="py-2 px-4 border-b">Created At</th>
@@ -132,26 +163,25 @@ const ViewOrders: React.FC = () => {
             {filteredOrders.map((order) => (
               <tr key={order._id} className="hover:bg-gray-100">
                 <td className="py-2 px-4 border-b">{order._id}</td>
+                <td className="py-2 px-4 border-b">{order.user?.username || "N/A"}</td>
+                <td className="py-2 px-4 border-b">{order.user?.email || "N/A"}</td>
                 <td className="py-2 px-4 border-b">{order.serviceName}</td>
                 <td className="py-2 px-4 border-b">{order.description}</td>
-                <td className="py-2 px-4 border-b">${order.total.toFixed(2)}</td>
+                <td className="py-2 px-4 border-b">${order.price?.toFixed(2)}</td>
+                <td className="py-2 px-4 border-b">${order.total?.toFixed(2)}</td>
                 <td className="py-2 px-4 border-b">{order.status}</td>
-                <td className="py-2 px-4 border-b">
-                  {new Date(order.createdAt).toLocaleString()}
-                </td>
+                <td className="py-2 px-4 border-b">{new Date(order.createdAt).toLocaleString()}</td>
                 <td className="py-2 px-4 border-b">
                   <select
                     value={order.status}
-                    onChange={(e) =>
-                      updateOrderStatus(order._id, e.target.value)
-                    }
+                    onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                    disabled={updatingStatus === order._id}
                     className="border rounded px-2 py-1"
                   >
-                    {statuses.slice(1).map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
               </tr>
