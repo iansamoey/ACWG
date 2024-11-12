@@ -1,7 +1,8 @@
 // src/paypal.d.ts
 
 declare module '@paypal/react-paypal-js' {
-    export const PayPalScriptProvider: any;
-    export const PayPalButtons: any;
-  }
-  
+  import { PayPalScriptProvider as ScriptProviderType, PayPalButtons as ButtonsType } from '@paypal/react-paypal-js';
+
+  export const PayPalScriptProvider: ScriptProviderType;
+  export const PayPalButtons: ButtonsType;
+}

@@ -1,4 +1,3 @@
-// src/app/api/login/route.ts
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { MongoClient } from 'mongodb';
@@ -34,8 +33,14 @@ export async function POST(request: Request) {
             email: user.email,
             isAdmin: user.isAdmin
         });
-    } catch (error) {
-        return NextResponse.json({ message: 'Error logging in' }, { status: 500 });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error('Error logging in:', error.message); // Log the error message for debugging
+            return NextResponse.json({ message: 'Error logging in', details: error.message }, { status: 500 });
+        }
+        // Handle unexpected errors
+        console.error('Unexpected error:', error);
+        return NextResponse.json({ message: 'Error logging in', details: 'Unknown error' }, { status: 500 });
     } finally {
         await client.close();
     }

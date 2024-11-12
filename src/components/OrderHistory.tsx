@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { Spinner } from "react-bootstrap";
@@ -41,8 +39,12 @@ const OrderHistory: React.FC = () => {
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setOrders(sortedOrders);
-      } catch (error: any) {
-        setError(error.message || "An unexpected error occurred");
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message || "An unexpected error occurred");
+        } else {
+          setError("An unexpected error occurred");
+        }
       } finally {
         setLoading(false);
       }

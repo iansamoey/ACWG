@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from "react";
 import { Spinner } from "react-bootstrap";
@@ -50,7 +50,7 @@ const ViewOrders: React.FC = () => {
                   },
                 };
               }
-            } catch (userError) {
+            } catch (userError: unknown) {
               console.error("Error fetching user details:", userError);
             }
             return order;
@@ -58,8 +58,12 @@ const ViewOrders: React.FC = () => {
         );
 
         setOrders(ordersWithUserDetails);
-      } catch (error: any) {
-        setError(error.message);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setLoading(false);
       }
@@ -89,8 +93,12 @@ const ViewOrders: React.FC = () => {
           order._id === orderId ? { ...order, status: newStatus } : order
         )
       );
-    } catch (error) {
-      console.error("Error updating status:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error updating status:", error);
+      } else {
+        console.error("Unknown error occurred while updating status");
+      }
     } finally {
       setUpdatingStatus(null);
     }

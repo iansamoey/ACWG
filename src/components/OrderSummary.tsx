@@ -1,21 +1,34 @@
+'use client'; // This directive makes the component a client component
+
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 
+// Define PayPal types to make the code type-safe
+interface PayPalOrderData {
+  orderID: string;
+}
+
+interface PayPalActions {
+  order: {
+    create: (orderDetails: {
+      purchase_units: Array<{ amount: { value: string } }>;
+    }) => Promise<{ id: string }>;
+    capture: () => Promise<{
+      payer: { name: { given_name: string } };
+    }>;
+  };
+}
+
 const OrderSummary: React.FC = () => {
   const { state } = useCart();
-  const router = useRouter();
+  
 
   // Calculate total price from cart items
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
-  
-  // Replace with actual userId from session/context
-  const userId = 'currentUserId'; 
 
-  const handleProceedToCardPayment = () => {
-    router.push('/card-payment');
-  };
+  // Replace with actual userId from session/context
+  const userId = 'currentUserId';
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
@@ -32,14 +45,14 @@ const OrderSummary: React.FC = () => {
 
       <div className="mt-4">
         <PayPalButtons
-          createOrder={(data: Record<string, unknown>, actions: { order: { create: (orderDetails: any) => Promise<string> } }) => {
+          createOrder={(data: Record<string, unknown>, actions: PayPalActions) => {
             return actions.order.create({
               purchase_units: [{
                 amount: { value: totalPrice.toFixed(2) },
               }],
             });
           }}
-          onApprove={async (data: { orderID: string }, actions: { order: { capture: () => Promise<any> } }) => {
+          onApprove={async (data: PayPalOrderData, actions: PayPalActions) => {
             const details = await actions.order.capture();
 
             // Create the order in your database after capturing payment
@@ -60,8 +73,6 @@ const OrderSummary: React.FC = () => {
           onError={(err: unknown) => console.error('PayPal Checkout Error', err)}
         />
       </div>
-
-      
     </div>
   );
 };

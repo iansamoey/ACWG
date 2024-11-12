@@ -7,7 +7,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ setActiveTab }) => {
-  const { state: userState, dispatch } = useUser();
+  const { dispatch } = useUser();  // Only use `dispatch` if needed
   const router = useRouter();
 
   const handleLogout = () => {

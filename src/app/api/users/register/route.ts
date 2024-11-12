@@ -1,5 +1,3 @@
-// src/app/api/users/register/route.ts
-
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { MongoClient } from 'mongodb';
@@ -26,8 +24,14 @@ export async function POST(request: Request) {
         await db.collection('users').insertOne({ username, email, password: hashedPassword });
 
         return NextResponse.json({ message: 'User registered successfully' });
-    } catch (error) {
-        return NextResponse.json({ message: 'Error registering user' }, { status: 500 });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error('Error registering user:', error.message); // Log the error message
+            return NextResponse.json({ message: 'Error registering user', details: error.message }, { status: 500 });
+        }
+        // Handle unexpected errors
+        console.error('Unexpected error:', error);
+        return NextResponse.json({ message: 'Error registering user', details: 'Unknown error' }, { status: 500 });
     } finally {
         await client.close();
     }

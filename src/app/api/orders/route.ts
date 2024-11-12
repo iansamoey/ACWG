@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
-import User from "@/models/User"; // Ensure you have imported your User model
+// Removed unused import for User
 
 export async function GET() {
   await dbConnect();

@@ -1,20 +1,24 @@
-// src/app/manage-content/page.tsx
-"use client"; // Add this line to mark this file as a client component
+"use client";
 
 import React, { useEffect, useState } from 'react';
 
+// Define a type for the service object
+interface Service {
+  _id: string;
+  name: string;
+  description: string;
+  price: string;
+}
+
+interface Notification {
+  message: string;
+  type: 'success' | 'error' | null;
+}
+
 const ManageContent: React.FC = () => {
-  const [services, setServices] = useState<any[]>([]);
-  const [service, setService] = useState<{ id: string; name: string; description: string; price: string }>({
-    id: '',
-    name: '',
-    description: '',
-    price: '',
-  });
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | null }>({
-    message: '',
-    type: null,
-  });
+  const [services, setServices] = useState<Service[]>([]); // Array of services with specific type
+  const [service, setService] = useState<Service>({ _id: '', name: '', description: '', price: '' }); // Typed service state
+  const [notification, setNotification] = useState<Notification>({ message: '', type: null }); // Notification state
 
   useEffect(() => {
     fetchServices();
@@ -22,13 +26,13 @@ const ManageContent: React.FC = () => {
 
   const fetchServices = async () => {
     const response = await fetch('/api/services');
-    const data = await response.json();
+    const data: Service[] = await response.json(); // Typed response
     setServices(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const method = service.id ? 'PATCH' : 'POST';
+    const method = service._id ? 'PATCH' : 'POST';
     const response = await fetch('/api/services', {
       method,
       headers: { 'Content-Type': 'application/json' },
@@ -37,19 +41,19 @@ const ManageContent: React.FC = () => {
 
     if (response.ok) {
       fetchServices(); // Refresh the list
-      setNotification({ message: service.id ? 'Service updated successfully!' : 'Service created successfully!', type: 'success' });
+      setNotification({ message: service._id ? 'Service updated successfully!' : 'Service created successfully!', type: 'success' });
       setTimeout(() => setNotification({ message: '', type: null }), 3000); // Clear notification after 3 seconds
-      setService({ id: '', name: '', description: '', price: '' }); // Reset form
+      setService({ _id: '', name: '', description: '', price: '' }); // Reset form
     } else {
       setNotification({ message: 'Failed to save service.', type: 'error' });
     }
   };
 
-  const handleEdit = (srv: any) => {
+  const handleEdit = (srv: Service) => { // Edited to accept a Service type
     setService(srv);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string) => { // ID as string is sufficient for delete
     const response = await fetch('/api/services', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -101,12 +105,12 @@ const ManageContent: React.FC = () => {
           className="border border-gray-300 rounded-md p-2 mb-2 w-full"
         />
         <button type="submit" className="bg-blue-500 text-white rounded-md p-2">
-          {service.id ? 'Update' : 'Create'} Service
+          {service._id ? 'Update' : 'Create'} Service
         </button>
       </form>
 
       <ul className="space-y-2">
-        {services.map((srv: any) => (
+        {services.map((srv) => (
           <li key={srv._id} className="flex justify-between items-center bg-white rounded-md p-2 shadow-sm">
             <div>
               <strong>{srv.name}</strong> - ${srv.price}

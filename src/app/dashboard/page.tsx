@@ -1,7 +1,5 @@
 import React from 'react';
 import Link from 'next/link'; // Import Link for navigation
-import AdminDashboard from './admin-dashboard/page'; // Import the AdminDashboard correctly
-
 const DashboardPage: React.FC = () => {
     return (
         <div>

@@ -5,13 +5,13 @@ import { MongoClient } from 'mongodb';
 
 declare global {
   // Declare mongoose connection globally to avoid reconnecting each time
-  var mongoose: {
+  const mongoose: {
     conn: mongoose.Connection | null;
     promise: Promise<mongoose.Connection> | null;
   };
 
   // Declare MongoDB client promise globally to manage connections in serverless functions
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  let _mongoClientPromise: Promise<MongoClient> | undefined;
 
   // Add environment variable types
   namespace NodeJS {

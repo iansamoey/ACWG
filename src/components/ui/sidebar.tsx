@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { Slot } from "@radix-ui/react-slot";
 
 interface SidebarProps {
@@ -55,9 +54,12 @@ export const SidebarMenuItem: React.FC<SidebarMenuItemProps> = ({ children }) =>
   <li>{children}</li>
 );
 
-export const SidebarMenuButton: React.FC<SidebarMenuButtonProps> = ({ children, asChild }) => (
-  <Slot>{children}</Slot>
-);
+export const SidebarMenuButton: React.FC<SidebarMenuButtonProps> = ({ children, asChild }) => {
+  if (asChild) {
+    return <Slot>{children}</Slot>;
+  }
+  return <button>{children}</button>; // Default button behavior if `asChild` is not passed
+};
 
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="flex">{children}</div>

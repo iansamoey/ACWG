@@ -1,5 +1,3 @@
-// src/app/checkout/page.tsx
-
 'use client'; // This directive makes the component a client component
 
 import React from 'react';
@@ -8,6 +6,34 @@ import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
 import { useRouter } from 'next/navigation';
 
+// Define the structure of the order
+interface OrderDetails {
+  userId: string | null;
+  items: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  total: number;
+}
+
+// Define types for PayPal data and actions
+interface PayPalOrderData {
+  orderID: string;
+}
+
+interface PayPalActions {
+  order: {
+    create: (data: Record<string, unknown>) => Promise<{ id: string }>;
+    capture: () => Promise<{
+      payer: {
+        name: { given_name: string };
+      };
+    }>;
+  };
+}
+
 const Checkout: React.FC = () => {
   const { state } = useCart();
   const { state: userState } = useUser();
@@ -15,7 +41,7 @@ const Checkout: React.FC = () => {
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   // Function to handle order submission
-  const handleOrderSubmission = async (orderDetails: any) => {
+  const handleOrderSubmission = async (orderDetails: OrderDetails) => {
     try {
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -72,7 +98,7 @@ const Checkout: React.FC = () => {
           <div className="mt-4">
             <h3 className="text-xl font-semibold">Payment Options</h3>
             <PayPalButtons
-              createOrder={(data: any, actions: any) => {
+              createOrder={(data: PayPalOrderData, actions: PayPalActions) => {
                 return actions.order.create({
                   purchase_units: [{
                     amount: {
@@ -81,13 +107,16 @@ const Checkout: React.FC = () => {
                   }],
                 });
               }}
-              onApprove={async (data: any, actions: any) => {
+              onApprove={async (data: PayPalOrderData, actions: PayPalActions) => {
                 const details = await actions.order.capture();
-                alert('Transaction completed by ' + details.payer.name.given_name);
+                
+                // TypeScript now knows the payer's structure
+                const payerName = details.payer.name.given_name;
+                alert('Transaction completed by ' + payerName);
 
                 // Prepare order details to be saved
-                const orderDetails = {
-                  userId: userState.user ? userState.user._id : null, // Ensure you get the user ID
+                const orderDetails: OrderDetails = {
+                  userId: userState.user ? userState.user.id : null, // Ensure you get the user ID
                   items: state.items,
                   total: totalPrice,
                 };
@@ -99,7 +128,7 @@ const Checkout: React.FC = () => {
                   alert('User not authenticated. Please log in.');
                 }
               }}
-              onError={(err: any) => {
+              onError={(err: Error) => {
                 console.error('PayPal Checkout onError', err);
                 alert('An error occurred during the payment process.');
               }}
