@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import ServiceItem from '../../components/ServiceItem';
-import Navbar from '../../components/Navbar'; // Import Navbar
 import { Service } from '../../types'; // Import the Service type
 
 export default function Services() {
@@ -27,7 +26,7 @@ export default function Services() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar /> {/* Add Navbar component */}
+      {/* Removed Navbar component */}
       <div className="p-10">
         <h1 className="text-4xl font-semibold mb-6 text-center">Our Services</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
