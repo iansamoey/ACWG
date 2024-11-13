@@ -47,7 +47,7 @@ export default function Home() {
               &copy; {new Date().getFullYear()} Academic Writing. All rights reserved.
             </p>
             <a
-              href="mailto:support@academicwriting.com"
+              href="mailto:tutorrotich@gmail.com"
               className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
             >
               tutorrotich@gmail.com
