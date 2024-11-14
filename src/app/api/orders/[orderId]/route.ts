@@ -2,32 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 
-// PUT request to update order status
-export async function PUT(req: NextRequest, context: { params: { orderId: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ orderId: string }> }) {
   await dbConnect();
-  const { orderId } = context.params;
-  const { status } = await req.json();
 
-  // Validate the status input
-  const validStatuses = ["Pending", "In Progress", "Completed", "Cancelled"];
-  if (!validStatuses.includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-  }
+  // Await context.params to extract orderId safely
+  const { orderId } = await context.params;
 
   try {
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
+    // Fetch order based on orderId
+    const order = await Order.findById(orderId);
 
-    if (!updatedOrder) {
+    // Handle case when no order is found
+    if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json(updatedOrder, { status: 200 });
+    // Return the found order
+    return NextResponse.json(order, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to update order status" }, { status: 500 });
+    console.error("Error fetching order:", error);
+    return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
   }
 }

@@ -1,19 +1,25 @@
-// src/lib/mongodb.ts
-import { MongoClient } from 'mongodb';
+// src/lib/mongoose.ts
+import mongoose from 'mongoose';
 
-const uri = 'mongodb+srv://Admin:Admin123@georgia.xetsq.mongodb.net/?retryWrites=true&w=majority';
-const client = new MongoClient(uri);
-let clientPromise: Promise<MongoClient>;
+let cached = global.mongoose;
 
-if (process.env.NODE_ENV === 'development') {
-    // Use a global variable to preserve the MongoClient instance in development
-    if (!global._mongoClientPromise) {
-        global._mongoClientPromise = client.connect();
-    }
-    clientPromise = global._mongoClientPromise;
-} else {
-    // In production, create a new client each time
-    clientPromise = client.connect();
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
-export default clientPromise;
+const connectToDatabase = async () => {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI).then((mongooseInstance) => {
+      cached.conn = mongooseInstance.connection;
+      return cached.conn;
+    });
+  }
+
+  return cached.promise;
+};
+
+export default connectToDatabase;

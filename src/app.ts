@@ -1,7 +1,5 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import userRoutes from './routes/userRoutes';
-import orderRoutes from './routes/orderRoutes';
 
 
 const app = express();
@@ -16,9 +14,7 @@ mongoose.connect(MONGODB_URI)
     .then(() => console.log('Database connected'))
     .catch((err) => console.error('Database connection error:', err));
 
-// API Routes
-app.use('/api/users', userRoutes);
-app.use('/api/orders', orderRoutes);
+
 
 
 // Start the server

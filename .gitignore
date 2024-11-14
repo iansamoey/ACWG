@@ -45,3 +45,4 @@ next-env.d.ts
 # Ignore specific IDE and editor files (optional)
 .idea/
 .vscode/
+.vercel
