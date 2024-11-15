@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar"; // Adjust import based on your project structure
 import { UserProvider } from "@/context/UserContext"; // Adjust the import based on your project structure
 
+
 export default function Home() {
   return (
     <UserProvider>

@@ -1,80 +1,86 @@
-'use client';
+'use client'
 
-import React, { useEffect, useState } from "react";
-import { Spinner } from "react-bootstrap";
+import { useEffect, useState } from "react"
+import { Spinner } from "@/components/ui/spinner"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Order {
-  _id: string;
-  userId: string;
-  serviceName: string;
-  description: string;
-  price: number;
-  total: number;
-  status: string;
-  createdAt: Date;
+  _id: string
+  userId: string
+  serviceName: string
+  description: string
+  price: number
+  total: number
+  status: string
+  createdAt: Date
   user?: {
-    username: string;
-    email: string;
-  };
+    username: string
+    email: string
+  }
 }
 
-const ViewOrders: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+const statusColors = {
+  pending: "bg-yellow-200 text-yellow-800",
+  "in-progress": "bg-blue-200 text-blue-800",
+  completed: "bg-green-200 text-green-800",
+  cancelled: "bg-red-200 text-red-800",
+}
 
-  // Fetch orders and user details
+export default function ViewOrders() {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch("/api/orders");
+        const response = await fetch("/api/orders")
         if (!response.ok) {
-          throw new Error("Failed to fetch orders");
+          throw new Error("Failed to fetch orders")
         }
-        const ordersData: Order[] = await response.json();
+        const ordersData: Order[] = await response.json()
 
-        // Fetch user details for each order based on userId
         const ordersWithUserDetails = await Promise.all(
           ordersData.map(async (order) => {
             try {
-              const userResponse = await fetch(`/api/users/${order.userId}`);
+              const userResponse = await fetch(`/api/users/${order.userId}`)
               if (userResponse.ok) {
-                const userData = await userResponse.json();
+                const userData = await userResponse.json()
                 return {
                   ...order,
                   user: {
                     username: userData.username,
                     email: userData.email,
                   },
-                };
+                }
               }
-            } catch (userError: unknown) {
-              console.error("Error fetching user details:", userError);
+            } catch (userError) {
+              console.error("Error fetching user details:", userError)
             }
-            return order;
+            return order
           })
-        );
+        )
 
-        setOrders(ordersWithUserDetails);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setOrders(ordersWithUserDetails)
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "An unknown error occurred")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchOrders();
-  }, []);
+    fetchOrders()
+  }, [])
 
-  // Function to update order status
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    setUpdatingStatus(orderId); // Set updating status to show a spinner
+    setUpdatingStatus(orderId)
     try {
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
@@ -82,123 +88,122 @@ const ViewOrders: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
-      });
+      })
       if (!response.ok) {
-        throw new Error("Failed to update status");
+        throw new Error("Failed to update status")
       }
 
-      // Update the local state
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === orderId ? { ...order, status: newStatus } : order
         )
-      );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Error updating status:", error);
-      } else {
-        console.error("Unknown error occurred while updating status");
-      }
+      )
+    } catch (error) {
+      console.error("Error updating status:", error)
     } finally {
-      setUpdatingStatus(null);
+      setUpdatingStatus(null)
     }
-  };
+  }
 
-  // Filtered orders based on statusFilter
   const filteredOrders =
     statusFilter === "all"
       ? orders
-      : orders.filter((order) => order.status === statusFilter);
+      : orders.filter((order) => order.status === statusFilter)
 
-  // Loading spinner
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <Spinner animation="border" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="w-8 h-8" />
       </div>
-    );
+    )
   }
 
-  // Error message
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-red-500 text-white p-4 rounded">{error}</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-5xl bg-white rounded shadow-md p-6 ml-80">
-        <h1 className="text-2xl font-bold mb-4">View Orders</h1>
-
-        {/* Status Filter */}
+    <Card className="w-full max-w-6xl mx-auto my-8">
+      <CardHeader>
+        <CardTitle>View Orders</CardTitle>
+      </CardHeader>
+      <CardContent>
         <div className="mb-4">
-          <label htmlFor="status-filter" className="mr-2 font-semibold">
-            Filter by Status:
-          </label>
-          <select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border rounded px-2 py-1"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <table className="min-w-full bg-white border border-gray-300">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="py-2 px-4 border-b">Order ID</th>
-              <th className="py-2 px-4 border-b">User Name</th>
-              <th className="py-2 px-4 border-b">Email</th>
-              <th className="py-2 px-4 border-b">Service Name</th>
-              <th className="py-2 px-4 border-b">Description</th>
-              <th className="py-2 px-4 border-b">Price</th>
-              <th className="py-2 px-4 border-b">Total</th>
-              <th className="py-2 px-4 border-b">Status</th>
-              <th className="py-2 px-4 border-b">Created At</th>
-              <th className="py-2 px-4 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order ID</TableHead>
+              <TableHead>User Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Service Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filteredOrders.map((order) => (
-              <tr key={order._id} className="hover:bg-gray-100">
-                <td className="py-2 px-4 border-b">{order._id}</td>
-                <td className="py-2 px-4 border-b">{order.user?.username || "N/A"}</td>
-                <td className="py-2 px-4 border-b">{order.user?.email || "N/A"}</td>
-                <td className="py-2 px-4 border-b">{order.serviceName}</td>
-                <td className="py-2 px-4 border-b">{order.description}</td>
-                <td className="py-2 px-4 border-b">${order.price?.toFixed(2)}</td>
-                <td className="py-2 px-4 border-b">${order.total?.toFixed(2)}</td>
-                <td className="py-2 px-4 border-b">{order.status}</td>
-                <td className="py-2 px-4 border-b">{new Date(order.createdAt).toLocaleString()}</td>
-                <td className="py-2 px-4 border-b">
-                  <select
+              <TableRow key={order._id}>
+                <TableCell>{order._id}</TableCell>
+                <TableCell>{order.user?.username || "N/A"}</TableCell>
+                <TableCell>{order.user?.email || "N/A"}</TableCell>
+                <TableCell>{order.serviceName}</TableCell>
+                <TableCell>{order.description}</TableCell>
+                <TableCell>${order.price?.toFixed(2)}</TableCell>
+                <TableCell>${order.total?.toFixed(2)}</TableCell>
+                <TableCell>
+                  <Badge className={statusColors[order.status as keyof typeof statusColors]}>
+                    {order.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
+                <TableCell>
+                  <Select
                     value={order.status}
-                    onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                    onValueChange={(value: string) => updateOrderStatus(order._id, value)}
                     disabled={updatingStatus === order._id}
-                    className="border rounded px-2 py-1"
                   >
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </td>
-              </tr>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Update Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-export default ViewOrders;
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  )
+}
