@@ -19,13 +19,6 @@ const Sidebar: React.FC<SidebarProps> = ({ setActiveTab }) => {
     <div className="bg-gray-800 text-white h-full w-64 p-4 fixed top-0 left-0">
       <h2 className="text-xl font-bold mb-4">Dashboard</h2>
       <ul>
-        {/* View Order Status */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('order-status')} className="hover:underline">
-            View Order Status
-          </button>
-        </li>
-
         {/* View Cart Status */}
         <li className="mb-2">
           <button onClick={() => setActiveTab('cart-status')} className="hover:underline">

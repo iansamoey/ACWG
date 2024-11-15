@@ -6,6 +6,12 @@ import { Spinner } from "@/components/ui/spinner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+
+interface Attachment {
+  filename: string;
+  path: string;
+}
 
 interface Order {
   _id: string
@@ -16,6 +22,7 @@ interface Order {
   total: number
   status: string
   createdAt: Date
+  attachments: Attachment[]
 }
 
 const statusColors = {
@@ -56,12 +63,10 @@ export default function OrderHistory() {
     }
   }
 
-  // Initial fetch
   useEffect(() => {
     fetchUserOrders()
   }, [userState.user?.id])
 
-  // Polling for updates every 30 seconds
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (userState.user?.id) {
@@ -91,7 +96,7 @@ export default function OrderHistory() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
+    <div className="max-w-6xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
       <h1 className="text-2xl font-bold mb-6">Order History</h1>
       {orders.length === 0 ? (
         <p className="text-center text-gray-600">No orders found.</p>
@@ -106,6 +111,7 @@ export default function OrderHistory() {
               <TableHead className="text-right">Total</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-center">Date</TableHead>
+              <TableHead className="text-center">Attachments</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,6 +133,22 @@ export default function OrderHistory() {
                 </TableCell>
                 <TableCell className="text-center">
                   {new Date(order.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-center">
+                  {order.attachments && order.attachments.length > 0 ? (
+                    order.attachments.map((attachment, index) => (
+                      <Button
+                        key={index}
+                        variant="link"
+                        className="p-0 h-auto font-normal"
+                        onClick={() => window.open(attachment.path, '_blank')}
+                      >
+                        {attachment.filename}
+                      </Button>
+                    ))
+                  ) : (
+                    "No attachments"
+                  )}
                 </TableCell>
               </TableRow>
             ))}

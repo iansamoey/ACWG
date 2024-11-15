@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+interface IAttachment {
+  filename: string;
+  path: string;
+}
+
 interface IOrder extends Document {
   userId: string;
   serviceName: string;
@@ -8,7 +13,14 @@ interface IOrder extends Document {
   total: number;
   status: string;
   createdAt: Date;
+  updatedAt: Date;
+  attachments: IAttachment[];
 }
+
+const attachmentSchema = new Schema<IAttachment>({
+  filename: { type: String, required: true },
+  path: { type: String, required: true },
+});
 
 const orderSchema = new Schema<IOrder>({
   userId: { type: String, required: true },
@@ -16,7 +28,10 @@ const orderSchema = new Schema<IOrder>({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   total: { type: Number, required: true },
-  status: { type: String, default: "pending" },
+  status: { type: String, enum: ['pending', 'in-progress', 'completed', 'cancelled'], default: 'pending' },
+  attachments: [attachmentSchema],
 }, { timestamps: true });
 
-export default mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);
+const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);
+
+export default Order;

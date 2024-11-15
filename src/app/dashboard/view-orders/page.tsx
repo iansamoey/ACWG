@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+
+interface Attachment {
+  filename: string;
+  path: string;
+}
 
 interface Order {
   _id: string
@@ -18,6 +24,7 @@ interface Order {
   total: number
   status: string
   createdAt: Date
+  attachments: Attachment[]
   user?: {
     username: string
     email: string
@@ -131,7 +138,7 @@ export default function ViewOrders() {
   }
 
   return (
-    <Card className="w-full max-w-6xl mx-auto my-8">
+    <Card className="w-full max-w-7xl mx-auto my-8">
       <CardHeader>
         <CardTitle>View Orders</CardTitle>
       </CardHeader>
@@ -163,6 +170,7 @@ export default function ViewOrders() {
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Attachments</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -182,6 +190,22 @@ export default function ViewOrders() {
                   </Badge>
                 </TableCell>
                 <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
+                <TableCell>
+                  {order.attachments && order.attachments.length > 0 ? (
+                    order.attachments.map((attachment, index) => (
+                      <Button
+                        key={index}
+                        variant="link"
+                        className="p-0 h-auto font-normal"
+                        onClick={() => window.open(attachment.path, '_blank')}
+                      >
+                        {attachment.filename}
+                      </Button>
+                    ))
+                  ) : (
+                    "No attachments"
+                  )}
+                </TableCell>
                 <TableCell>
                   <Select
                     value={order.status}
