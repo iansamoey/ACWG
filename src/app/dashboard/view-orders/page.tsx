@@ -15,6 +15,11 @@ interface Attachment {
   path: string;
 }
 
+interface UserDetails {
+  username: string;
+  email: string;
+}
+
 interface Order {
   _id: string
   userId: string
@@ -25,10 +30,7 @@ interface Order {
   status: string
   createdAt: Date
   attachments: Attachment[]
-  userDetails: {
-    username: string
-    email: string
-  }
+  userDetails: UserDetails
 }
 
 const statusColors = {
