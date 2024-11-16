@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
-// Removed unused import for User
 
 export async function GET() {
   await dbConnect();
 
   try {
-    // Fetch orders with user details using aggregation or populate (if you have user references)
     const orders = await Order.aggregate([
       {
         $lookup: {
@@ -33,11 +31,14 @@ export async function GET() {
           total: 1,
           status: 1,
           createdAt: 1,
+          attachments: 1, // Include attachments in the projection
           "userDetails.username": 1,
           "userDetails.email": 1,
         },
       },
     ]);
+
+    console.log("Fetched orders:", JSON.stringify(orders, null, 2)); // Debug log
 
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {

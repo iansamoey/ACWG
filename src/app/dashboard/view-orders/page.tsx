@@ -25,7 +25,7 @@ interface Order {
   status: string
   createdAt: Date
   attachments: Attachment[]
-  user?: {
+  userDetails: {
     username: string
     email: string
   }
@@ -53,30 +53,10 @@ export default function ViewOrders() {
           throw new Error("Failed to fetch orders")
         }
         const ordersData: Order[] = await response.json()
-
-        const ordersWithUserDetails = await Promise.all(
-          ordersData.map(async (order) => {
-            try {
-              const userResponse = await fetch(`/api/users/${order.userId}`)
-              if (userResponse.ok) {
-                const userData = await userResponse.json()
-                return {
-                  ...order,
-                  user: {
-                    username: userData.username,
-                    email: userData.email,
-                  },
-                }
-              }
-            } catch (userError) {
-              console.error("Error fetching user details:", userError)
-            }
-            return order
-          })
-        )
-
-        setOrders(ordersWithUserDetails)
+        console.log("Fetched orders:", ordersData) // Debug log
+        setOrders(ordersData)
       } catch (error) {
+        console.error("Error in fetchOrders:", error) // Debug log
         setError(error instanceof Error ? error.message : "An unknown error occurred")
       } finally {
         setLoading(false)
@@ -158,75 +138,79 @@ export default function ViewOrders() {
           </Select>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>User Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Service Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Attachments</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredOrders.map((order) => (
-              <TableRow key={order._id}>
-                <TableCell>{order._id}</TableCell>
-                <TableCell>{order.user?.username || "N/A"}</TableCell>
-                <TableCell>{order.user?.email || "N/A"}</TableCell>
-                <TableCell>{order.serviceName}</TableCell>
-                <TableCell>{order.description}</TableCell>
-                <TableCell>${order.price?.toFixed(2)}</TableCell>
-                <TableCell>${order.total?.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Badge className={statusColors[order.status as keyof typeof statusColors]}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
-                <TableCell>
-                  {order.attachments && order.attachments.length > 0 ? (
-                    order.attachments.map((attachment, index) => (
-                      <Button
-                        key={index}
-                        variant="link"
-                        className="p-0 h-auto font-normal"
-                        onClick={() => window.open(attachment.path, '_blank')}
-                      >
-                        {attachment.filename}
-                      </Button>
-                    ))
-                  ) : (
-                    "No attachments"
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Select
-                    value={order.status}
-                    onValueChange={(value: string) => updateOrderStatus(order._id, value)}
-                    disabled={updatingStatus === order._id}
-                  >
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Update Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>User Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Service Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Attachments</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => (
+                <TableRow key={order._id}>
+                  <TableCell className="font-mono">{order._id}</TableCell>
+                  <TableCell>{order.userDetails?.username || "N/A"}</TableCell>
+                  <TableCell>{order.userDetails?.email || "N/A"}</TableCell>
+                  <TableCell>{order.serviceName}</TableCell>
+                  <TableCell>{order.description}</TableCell>
+                  <TableCell>${order.price?.toFixed(2)}</TableCell>
+                  <TableCell>${order.total?.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge className={statusColors[order.status as keyof typeof statusColors]}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    {order.attachments && order.attachments.length > 0 ? (
+                      <div className="flex flex-col space-y-1">
+                        {order.attachments.map((attachment, index) => (
+                          <Button
+                            key={index}
+                            variant="link"
+                            className="p-0 h-auto font-normal text-left"
+                            onClick={() => window.open(attachment.path, '_blank')}
+                          >
+                            {attachment.filename}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      "No attachments"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={order.status}
+                      onValueChange={(value: string) => updateOrderStatus(order._id, value)}
+                      disabled={updatingStatus === order._id}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Update Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in-progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   )

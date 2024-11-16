@@ -17,7 +17,6 @@ export async function GET(
 ) {
   await dbConnect();
 
-  // Await the params to access `userId`
   const { userId } = await context.params;
 
   try {
@@ -47,7 +46,6 @@ export async function POST(
 ) {
   await dbConnect();
 
-  // Await the params to access `userId`
   const { userId } = await context.params;
 
   try {
@@ -58,7 +56,6 @@ export async function POST(
     const total = Number(formData.get("total"));
     const status = (formData.get("status") as string) || "pending";
 
-    // Validate required fields
     if (!serviceName || !description || !price || !total) {
       return NextResponse.json(
         {
@@ -69,7 +66,6 @@ export async function POST(
       );
     }
 
-    // Handling file uploads
     const attachments = [];
     for (const [key, value] of formData.entries()) {
       if (key.startsWith("attachment") && value instanceof File) {
@@ -78,7 +74,6 @@ export async function POST(
         const uploadDir = path.join(process.cwd(), "public", "uploads");
         const filePath = path.join(uploadDir, filename);
 
-        // Save file to the server
         await writeFile(filePath, buffer);
 
         attachments.push({
@@ -88,7 +83,6 @@ export async function POST(
       }
     }
 
-    // Create and save the new order
     const newOrder = new Order({
       userId,
       serviceName,
@@ -96,7 +90,7 @@ export async function POST(
       price,
       total,
       status,
-      attachments, // Make sure this line is present
+      attachments,
     });
 
     const savedOrder = await newOrder.save();
