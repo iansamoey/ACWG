@@ -1,10 +1,10 @@
-// src/app/layout.tsx
-"use client"; // Ensures layout can use client-side components
+"use client";
 
 import './globals.css';
-import { PayPalScriptProvider } from '@paypal/react-paypal-js'; // Import PayPalScriptProvider
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { CartProvider } from '../context/CartContext';
 import { UserProvider } from '../context/UserContext';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function RootLayout({
   children,
@@ -13,10 +13,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <title>Academic Writing Assistance</title>
+        <meta name="description" content="Expert academic writing services to help you succeed in your studies." />
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body>
         <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}>
           <UserProvider>
-            <CartProvider>{children}</CartProvider>
+            <CartProvider>
+              {children}
+              <Toaster />
+            </CartProvider>
           </UserProvider>
         </PayPalScriptProvider>
       </body>

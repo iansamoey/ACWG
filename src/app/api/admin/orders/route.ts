@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 
-
 export async function GET() {
   await dbConnect();
 
@@ -10,7 +9,7 @@ export async function GET() {
     const orders = await Order.aggregate([
       {
         $lookup: {
-          from: "users", // Make sure this matches your users collection name
+          from: "users",
           let: { userId: { $toObjectId: "$userId" } },
           pipeline: [
             { $match: { $expr: { $eq: ["$_id", "$$userId"] } } },
@@ -29,24 +28,22 @@ export async function GET() {
         $project: {
           _id: 1,
           userId: 1,
-          serviceName: 1,
-          description: 1,
-          price: 1,
+          items: 1,
           total: 1,
           status: 1,
           createdAt: 1,
           attachments: 1,
+          paypalOrderId: 1,
+          paypalPayerId: 1,
           "userDetails.username": 1,
           "userDetails.email": 1
         }
       }
     ]);
 
-    console.log("Fetched orders:", JSON.stringify(orders, null, 2)); // Debug log
-
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return NextResponse.json({ message: "Failed to fetch orders" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
   }
 }

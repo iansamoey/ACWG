@@ -1,6 +1,5 @@
-'use client'
-
-import { useEffect, useState } from "react"
+"use client";
+import { useEffect, useState, useCallback } from "react"
 import { useUser } from "@/context/UserContext"
 import { Spinner } from "@/components/ui/spinner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -38,7 +37,7 @@ export default function OrderHistory() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchUserOrders = async () => {
+  const fetchUserOrders = useCallback(async () => {
     try {
       const userId = userState.user?.id
 
@@ -61,11 +60,11 @@ export default function OrderHistory() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userState.user?.id]) // Including userState.user.id as a dependency
 
   useEffect(() => {
     fetchUserOrders()
-  }, [userState.user?.id])
+  }, [fetchUserOrders]) // Now fetchUserOrders is part of the dependency array
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -75,7 +74,7 @@ export default function OrderHistory() {
     }, 30000)
 
     return () => clearInterval(intervalId)
-  }, [userState.user?.id])
+  }, [userState.user?.id, fetchUserOrders]) // Including fetchUserOrders in the dependency array
 
   if (loading) {
     return (

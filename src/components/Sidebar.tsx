@@ -1,76 +1,117 @@
-import React from 'react';
-import { useUser } from '../context/UserContext';
-import { useRouter } from 'next/navigation';
+'use client'
+
+import { useCart } from '@/context/CartContext'
+import { useRouter } from 'next/navigation'
+import { useUser } from '@/context/UserContext'
+import { ShoppingCart } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface SidebarProps {
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: string) => void
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ setActiveTab }) => {
-  const { dispatch } = useUser();  // Only use `dispatch` if needed
-  const router = useRouter();
+export default function Component({ setActiveTab }: SidebarProps) {
+  const { dispatch } = useUser()
+  const { state: cartState } = useCart()
+  const router = useRouter()
 
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
-    router.push('/');
-  };
+    dispatch({ type: 'LOGOUT' })
+    router.push('/')
+  }
+
+  const totalItems = cartState.items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
     <div className="bg-gray-800 text-white h-full w-64 p-4 fixed top-0 left-0">
       <h2 className="text-xl font-bold mb-4">Dashboard</h2>
-      <ul>
-        {/* View Cart Status */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('cart-status')} className="hover:underline">
-            View Cart Status
-          </button>
+      <ul className="space-y-2">
+        <li>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-white hover:text-white hover:bg-gray-700"
+            onClick={() => setActiveTab('cart-status')}
+          >
+            <div className="flex items-center w-full">
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              <span>View Cart Status</span>
+              {totalItems > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className={cn(
+                    "ml-auto",
+                    totalItems > 99 ? "w-7" : "w-5",
+                  )}
+                >
+                  {totalItems > 99 ? '99+' : totalItems}
+                </Badge>
+              )}
+            </div>
+          </Button>
         </li>
 
-        {/* Order Summary */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('order-summary')} className="hover:underline">
+        <li>
+          <Button 
+            variant="ghost"
+            className="w-full justify-start text-white hover:text-white hover:bg-gray-700"
+            onClick={() => setActiveTab('order-summary')}
+          >
             Order Summary
-          </button>
+          </Button>
         </li>
 
-        {/* Services */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('services')} className="hover:underline">
+        <li>
+          <Button 
+            variant="ghost"
+            className="w-full justify-start text-white hover:text-white hover:bg-gray-700"
+            onClick={() => setActiveTab('services')}
+          >
             Services
-          </button>
+          </Button>
         </li>
 
-        {/* Request a Service */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('order-form')} className="hover:underline">
+        <li>
+          <Button 
+            variant="ghost"
+            className="w-full justify-start text-white hover:text-white hover:bg-gray-700"
+            onClick={() => setActiveTab('order-form')}
+          >
             Request a Service
-          </button>
+          </Button>
         </li>
 
-        {/* New Features */}
-        {/* Order History */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('order-history')} className="hover:underline">
+        <li>
+          <Button 
+            variant="ghost"
+            className="w-full justify-start text-white hover:text-white hover:bg-gray-700"
+            onClick={() => setActiveTab('order-history')}
+          >
             Order History
-          </button>
+          </Button>
         </li>
 
-        {/* Profile Management */}
-        <li className="mb-2">
-          <button onClick={() => setActiveTab('profile-update')} className="hover:underline">
+        <li>
+          <Button 
+            variant="ghost"
+            className="w-full justify-start text-white hover:text-white hover:bg-gray-700"
+            onClick={() => setActiveTab('profile-update')}
+          >
             Profile Management
-          </button>
+          </Button>
         </li>
 
-        {/* Logout */}
-        <li className="mb-2">
-          <button onClick={handleLogout} className="hover:underline text-red-500">
+        <li>
+          <Button 
+            variant="ghost"
+            className="w-full justify-start text-red-500 hover:text-red-400 hover:bg-gray-700"
+            onClick={handleLogout}
+          >
             Logout
-          </button>
+          </Button>
         </li>
       </ul>
     </div>
-  );
-};
-
-export default Sidebar;
+  )
+}

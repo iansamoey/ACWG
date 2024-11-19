@@ -1,14 +1,14 @@
-'use client';
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client";
 import React, { useState } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { X } from 'lucide-react'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X } from 'lucide-react';
 
 const OrderForm: React.FC = () => {
   const { state } = useUser();
@@ -24,7 +24,7 @@ const OrderForm: React.FC = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+      setAttachments(prev => [...prev, ...Array.from(e.target.files!)]); // Type assertion to prevent TypeScript errors
     }
   };
 
@@ -149,6 +149,7 @@ const OrderForm: React.FC = () => {
           </div>
         )}
 
+        {/* Conditional Error Display */}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
