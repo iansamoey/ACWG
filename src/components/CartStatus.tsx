@@ -1,69 +1,75 @@
-import React from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+
+import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import OrderSummary from "@/components/OrderSummary";
 
-const CartStatus: React.FC = () => {
+export default function CartStatus() {
   const { state: cartState, removeFromCart } = useCart();
-  const router = useRouter();
+  const [showOrderSummary, setShowOrderSummary] = useState(false);
 
-  const handleProceedToCheckout = async () => {
-    const total = cartState.items.reduce((total, item) => total + item.price * item.quantity, 0);
-    
-    try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: cartState.items,
-          total,
-        }),
-      });
-
-      if (response.ok) {
-        // Clear the cart or redirect to order summary
-        // Here you might want to clear the cart or redirect
-        router.push('/OrderSummary'); // Redirect to OrderSummary page
-      } else {
-        console.error('Failed to create order:', await response.json());
-      }
-    } catch (error) {
-      console.error('Error saving order:', error);
-    }
+  const handleProceedToCheckout = () => {
+    setShowOrderSummary(true);
   };
 
-  return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Cart Status</h2>
-      {cartState.items.length === 0 ? (
-        <p>Your cart is empty.</p>
-      ) : (
-        <div>
-          <ul>
-            {cartState.items.map((item) => (
-              <li key={item.id} className="flex justify-between border-b py-2">
-                <span>{item.name} (x{item.quantity})</span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
-                <button
-                  onClick={() => removeFromCart(item.id)} // Add button to remove item
-                  className="text-red-500 hover:underline"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 font-bold">
-            Total: ${cartState.items.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}
-          </div>
-          <button onClick={handleProceedToCheckout} className="mt-4 bg-blue-500 text-white py-2 px-4 rounded">
-            Proceed to Checkout
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
+  const handleBackToCart = () => {
+    setShowOrderSummary(false);
+  };
 
-export default CartStatus;
+  const total = cartState.items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  if (showOrderSummary) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Order Summary</CardTitle>
+          <Button variant="outline" onClick={handleBackToCart}>Back to Cart</Button>
+        </CardHeader>
+        <CardContent>
+          <OrderSummary />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>Cart Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {cartState.items.length === 0 ? (
+          <p className="text-center text-gray-500">Your cart is empty.</p>
+        ) : (
+          <div>
+            <ul className="space-y-2">
+              {cartState.items.map((item) => (
+                <li key={item.id} className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">{item.name} (x{item.quantity})</span>
+                  <div>
+                    <span className="mr-2 font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
+                    <Button
+                      onClick={() => removeFromCart(item.id)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 font-bold text-right text-lg">
+              Total: ${total.toFixed(2)}
+            </div>
+            <Button onClick={handleProceedToCheckout} className="w-full mt-4">
+              Proceed to Checkout
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

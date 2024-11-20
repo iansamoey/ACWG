@@ -1,12 +1,13 @@
-"use client"
+"use client";
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useUser } from '@/context/UserContext';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { Spinner } from "@/components/ui/spinner";
+import { Toast } from "@/components/ui/toast";
 
 interface PayPalOrderData {
   orderID: string;
@@ -15,7 +16,7 @@ interface PayPalOrderData {
 interface PayPalActions {
   order: {
     create: (orderDetails: {
-      purchase_units: Array<{ amount: { value: string } }> ;
+      purchase_units: Array<{ amount: { value: string } }>;
     }) => Promise<{ id: string }>;
     capture: () => Promise<{
       payer: { name: { given_name: string }; payer_id: string };
@@ -28,6 +29,7 @@ const OrderSummary: React.FC = () => {
   const { state: userState } = useUser();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const totalPrice = cartState.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
@@ -50,22 +52,21 @@ const OrderSummary: React.FC = () => {
           userId: userState.user?.id,
           items: cartState.items,
           total: totalPrice,
-          status: 'Completed',
+          status: 'pending',
           paypalOrderId: data.orderID,
           paypalPayerId: details.payer.payer_id,
         }),
       });
 
       if (response.ok) {
-        console.log('Order saved successfully');
-        clearCart(); // Clear the cart after successful order
+        clearCart();
         router.push('/order-confirmation');
       } else {
         throw new Error('Failed to save order');
       }
     } catch (error) {
       console.error('Error processing order:', error);
-      // Handle error (show error message to user)
+      setError('Failed to process your order. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -81,11 +82,11 @@ const OrderSummary: React.FC = () => {
           {cartState.items.map((item) => (
             <li key={item.id} className="flex justify-between border-b pb-2">
               <span>{item.name} (x{item.quantity})</span>
-              <span>${(item.price * item.quantity).toFixed(2)}</span>
+              <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
             </li>
           ))}
         </ul>
-        <div className="text-xl font-bold mb-6">
+        <div className="text-xl font-bold mb-6 text-right">
           Total: ${totalPrice.toFixed(2)}
         </div>
         {isProcessing ? (
@@ -100,7 +101,7 @@ const OrderSummary: React.FC = () => {
             style={{ layout: "vertical" }}
           />
         )}
-        
+        {error && <Toast variant="destructive">{error}</Toast>}
       </CardContent>
     </Card>
   );

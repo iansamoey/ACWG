@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react"
 import { Spinner } from "@/components/ui/spinner"
@@ -55,10 +55,9 @@ export default function ViewOrders() {
           throw new Error("Failed to fetch orders")
         }
         const ordersData: Order[] = await response.json()
-        console.log("Fetched orders:", ordersData) // Debug log
         setOrders(ordersData)
       } catch (error) {
-        console.error("Error in fetchOrders:", error) // Debug log
+        console.error("Error in fetchOrders:", error)
         setError(error instanceof Error ? error.message : "An unknown error occurred")
       } finally {
         setLoading(false)

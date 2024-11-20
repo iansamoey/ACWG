@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState, useCallback } from "react"
 import { useUser } from "@/context/UserContext"
 import { Spinner } from "@/components/ui/spinner"
@@ -6,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Attachment {
   filename: string;
@@ -60,11 +62,11 @@ export default function OrderHistory() {
     } finally {
       setLoading(false)
     }
-  }, [userState.user?.id]) // Including userState.user.id as a dependency
+  }, [userState.user?.id])
 
   useEffect(() => {
     fetchUserOrders()
-  }, [fetchUserOrders]) // Now fetchUserOrders is part of the dependency array
+  }, [fetchUserOrders])
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -74,7 +76,7 @@ export default function OrderHistory() {
     }, 30000)
 
     return () => clearInterval(intervalId)
-  }, [userState.user?.id, fetchUserOrders]) // Including fetchUserOrders in the dependency array
+  }, [userState.user?.id, fetchUserOrders])
 
   if (loading) {
     return (
@@ -95,65 +97,69 @@ export default function OrderHistory() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-bold mb-6">Order History</h1>
-      {orders.length === 0 ? (
-        <p className="text-center text-gray-600">No orders found.</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Price</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-center">Date</TableHead>
-              <TableHead className="text-center">Attachments</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order._id}>
-                <TableCell className="font-mono">{order._id}</TableCell>
-                <TableCell>{order.serviceName}</TableCell>
-                <TableCell>{order.description}</TableCell>
-                <TableCell className="text-right">
-                  ${order.price && !isNaN(order.price) ? order.price.toFixed(2) : "N/A"}
-                </TableCell>
-                <TableCell className="text-right">
-                  ${order.total && !isNaN(order.total) ? order.total.toFixed(2) : "N/A"}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge className={statusColors[order.status as keyof typeof statusColors]}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="text-center">
-                  {order.attachments && order.attachments.length > 0 ? (
-                    order.attachments.map((attachment, index) => (
-                      <Button
-                        key={index}
-                        variant="link"
-                        className="p-0 h-auto font-normal"
-                        onClick={() => window.open(attachment.path, '_blank')}
-                      >
-                        {attachment.filename}
-                      </Button>
-                    ))
-                  ) : (
-                    "No attachments"
-                  )}
-                </TableCell>
+    <Card className="w-full max-w-6xl mx-auto my-8">
+      <CardHeader>
+        <CardTitle>Order History</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {orders.length === 0 ? (
+          <p className="text-center text-gray-600">No orders found.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Date</TableHead>
+                <TableHead className="text-center">Attachments</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order._id}>
+                  <TableCell className="font-mono">{order._id}</TableCell>
+                  <TableCell>{order.serviceName}</TableCell>
+                  <TableCell>{order.description}</TableCell>
+                  <TableCell className="text-right">
+                    ${order.price && !isNaN(order.price) ? order.price.toFixed(2) : "N/A"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ${order.total && !isNaN(order.total) ? order.total.toFixed(2) : "N/A"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge className={statusColors[order.status as keyof typeof statusColors]}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {order.attachments && order.attachments.length > 0 ? (
+                      order.attachments.map((attachment, index) => (
+                        <Button
+                          key={index}
+                          variant="link"
+                          className="p-0 h-auto font-normal"
+                          onClick={() => window.open(attachment.path, '_blank')}
+                        >
+                          {attachment.filename}
+                        </Button>
+                      ))
+                    ) : (
+                      "No attachments"
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   )
 }
