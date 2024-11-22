@@ -81,10 +81,10 @@ export default function Home() {
               </div>
               <div className="flex flex-col items-center md:items-end">
                 <a
-                  href="mailto:tutorrotich@gmail.com"
+                  href="mailto:essaysgeorgia@gmail.com"
                   className="text-blue-400 hover:text-blue-300 transition-colors duration-200 mb-2"
                 >
-                  tutorrotich@gmail.com
+                  essaysgeorgia@gmail.com
                 </a>
                 <p className="text-sm text-gray-400">
                   Contact us for inquiries or support
