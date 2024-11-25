@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import React from 'react';
+
 
 const CreateAdmin: React.FC = () => {
   const [username, setUsername] = useState("");

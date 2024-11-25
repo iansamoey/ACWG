@@ -1,6 +1,7 @@
 "use client"; 
 
 import { useState } from "react";
+import React from 'react';
 import ManageUsers from "@/app/dashboard/manage-users/page";
 import ManageContent from "@/app/dashboard/manage-content/page";
 import ViewOrders from "@/app/dashboard/view-orders/page";

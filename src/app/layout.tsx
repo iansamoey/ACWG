@@ -5,6 +5,8 @@ import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { CartProvider } from '../context/CartContext';
 import { UserProvider } from '../context/UserContext';
 import { Toaster } from '@/components/ui/toaster';
+import React from 'react';
+
 
 export default function RootLayout({
   children,

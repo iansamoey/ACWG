@@ -1,9 +1,9 @@
-// src/global.d.ts
 import mongoose from 'mongoose';
 import { MongoClient } from 'mongodb';
 
 declare global {
-  var mongoose: {
+  // Use `let` or `const` instead of `var`
+  let mongoose: {
     conn: mongoose.Connection | null;
     promise: Promise<mongoose.Connection> | null;
   };

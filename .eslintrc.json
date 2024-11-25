@@ -1,6 +1,7 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
-    "no-var": "off"
+    "no-var": "off",
+    "react/prop-types": "off"  // Disable the prop-types rule
   }
 }

@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import React from 'react';
+
 
 interface Attachment {
   filename: string;
