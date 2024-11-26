@@ -1,22 +1,20 @@
 import mongoose from 'mongoose';
-import { MongoClient } from 'mongodb';
 
 declare global {
-  // Use `let` or `const` instead of `var`
-  let mongoose: {
+  namespace NodeJS {
+    interface Global {
+      mongoose: {
+        conn: mongoose.Connection | null;
+        promise: Promise<mongoose.Connection> | null;
+      };
+    }
+  }
+
+  // eslint-disable-next-line no-var
+  var mongoose: {
     conn: mongoose.Connection | null;
     promise: Promise<mongoose.Connection> | null;
   };
-
-  let _mongoClientPromise: Promise<MongoClient> | undefined;
-
-  namespace NodeJS {
-    interface ProcessEnv {
-      MONGODB_URI: string;
-      NEXT_PUBLIC_API_URL: string;
-      NEXTAUTH_SECRET?: string;
-    }
-  }
 }
 
-export {};
+export {}; // Ensure this file is treated as a module
