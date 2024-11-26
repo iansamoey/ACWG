@@ -2,7 +2,14 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { MongoClient } from 'mongodb';
 
-const client = new MongoClient(process.env.MONGODB_URI);
+// Ensure MONGODB_URI is defined
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+    throw new Error("MONGODB_URI is not defined in the environment variables.");
+}
+
+// Initialize MongoDB client
+const client = new MongoClient(uri);
 
 export async function POST(request: Request) {
     const { username, email, password } = await request.json();
