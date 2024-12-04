@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/context/UserContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,6 @@ const LoginPage = () => {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { dispatch } = useUser();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -22,28 +21,24 @@ const LoginPage = () => {
         setIsLoading(true);
         
         try {
-            const response = await fetch('/api/users/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier, password }),
+            const result = await signIn('credentials', {
+                redirect: false,
+                identifier,
+                password,
             });
             
-            const data = await response.json();
-            
-            if (response.ok) {
-                dispatch({
-                    type: 'LOGIN',
-                    payload: {
-                        id: data.userId,
-                        email: data.email,
-                        isAdmin: data.isAdmin,
-                        requests: []
-                    },
-                });
-
-                router.push(data.isAdmin ? '/dashboard/admin-dashboard' : '/dashboard/userDashboard');
+            if (result?.error) {
+                alert(result.error);
             } else {
-                alert(data.message);
+                // Fetch the session to get user data
+                const session = await fetch('/api/auth/session');
+                const sessionData = await session.json();
+                
+                if (sessionData?.user?.isAdmin) {
+                    router.push('/dashboard/admin-dashboard');
+                } else {
+                    router.push('/dashboard/userDashboard');
+                }
             }
         } catch {
             alert('An error occurred. Please try again.');
@@ -104,3 +99,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

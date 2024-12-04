@@ -1,11 +1,12 @@
-"use client"; 
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from 'react';
+import { useUser } from "@/context/UserContext";
 import ManageUsers from "@/app/dashboard/manage-users/page";
 import ManageContent from "@/app/dashboard/manage-content/page";
 import ViewOrders from "@/app/dashboard/view-orders/page";
-import CreateAdmin from "@/app/dashboard/create-admin/page"; // Import the CreateAdmin component
+import CreateAdmin from "@/app/dashboard/create-admin/page";
 import {
   Sidebar,
   SidebarHeader,
@@ -16,12 +17,23 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { Users, FileText, ShoppingCart, LogOut } from "lucide-react"; // Import LogOut icon
-import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
+import { Users, FileText, ShoppingCart, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useSession, signOut } from "next-auth/react";
+import { withAuth } from '@/components/auth/with-auth';
 
-export default function AdminDashboard() {
+function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState("ManageUsers");
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { state: userState } = useUser();
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session?.user) {
+      setUserName(session.user.name || session.user.email || "Admin");
+    }
+  }, [session]);
 
   const renderContent = () => {
     switch (currentPage) {
@@ -31,16 +43,20 @@ export default function AdminDashboard() {
         return <ManageContent />;
       case "ViewOrders":
         return <ViewOrders />;
-      case "CreateAdmin": // Add a case for the new CreateAdmin page
+      case "CreateAdmin":
         return <CreateAdmin />;
       default:
         return null;
     }
   };
 
-  const handleSignOut = () => {
-    // Clear any user data if needed and redirect to the main page
-    router.push('/'); // Redirect to the main page (src/app/page.tsx)
+  const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: "/" });
+      router.push("/");
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
   };
 
   return (
@@ -76,7 +92,6 @@ export default function AdminDashboard() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {/* Add the new Create Admin menu item */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="#" onClick={() => setCurrentPage("CreateAdmin")} className="flex items-center gap-2">
@@ -85,26 +100,32 @@ export default function AdminDashboard() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {/* Add Sign Out menu item */}
-              <SidebarMenuItem>
-  <SidebarMenuButton asChild>
-    <button 
-      onClick={handleSignOut} 
-      className="flex items-center gap-2 w-full text-left"
-    >
-      <LogOut className="h-4 w-4" />
-      <span>Sign Out</span>
-    </button>
-  </SidebarMenuButton>
-</SidebarMenuItem>
-
+              {session && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <button 
+                      onClick={handleSignOut} 
+                      className="flex items-center gap-2 w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <div className="flex-1 ml-64 p-4 min-h-screen flex items-center justify-center relative z-0">
+        <div className="flex-1 ml-64 p-4 min-h-screen flex flex-col items-start justify-start relative z-0">
+          <h1 className="text-3xl font-bold mb-4">
+            Welcome, {userName || ":)"}
+          </h1>
           {renderContent()}
         </div>
       </div>
     </SidebarProvider>
   );
 }
+
+export default withAuth(AdminDashboard, { requireAdmin: true });
+

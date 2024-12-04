@@ -1,12 +1,12 @@
 "use client";
-
 import './globals.css';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { CartProvider } from '../context/CartContext';
 import { UserProvider } from '../context/UserContext';
 import { Toaster } from '@/components/ui/toaster';
 import React from 'react';
-
+import { Analytics } from "@vercel/analytics/react"
+import { SessionProvider } from 'next-auth/react';
 
 export default function RootLayout({
   children,
@@ -21,15 +21,19 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body>
-        <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}>
-          <UserProvider>
-            <CartProvider>
-              {children}
-              <Toaster />
-            </CartProvider>
-          </UserProvider>
-        </PayPalScriptProvider>
+        <SessionProvider>
+          <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}>
+            <UserProvider>
+              <CartProvider>
+                {children}
+                <Toaster />
+              </CartProvider>
+            </UserProvider>
+          </PayPalScriptProvider>
+        </SessionProvider>
+        <Analytics />
       </body>
     </html>
   );
 }
+

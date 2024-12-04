@@ -10,14 +10,15 @@ export interface Request {
 }
 
 export interface User {
-  id: string; // Use only one id field for simplicity
+  id: string;            // Unique user ID
+  username: string;      // Added username field
   email: string;
   isAdmin: boolean;
-  requests: Request[]; // Include requests array
+  requests: Request[];
 }
 
 interface UserState {
-  user: User | null; // User can be null until logged in
+  user: User | null;      // User can be null until logged in
 }
 
 // Define action types for better type safety
@@ -27,7 +28,7 @@ type UserAction =
 
 interface UserContextType {
   state: UserState;
-  dispatch: React.Dispatch<UserAction>; // Use UserAction type
+  dispatch: React.Dispatch<UserAction>;
 }
 
 // Initial state
@@ -41,10 +42,10 @@ const userReducer = (state: UserState, action: UserAction): UserState => {
     case 'LOGIN':
       return {
         ...state,
-        user: action.payload, // Set user on login
+        user: action.payload,  // Set user on login (ensure 'username' is in payload)
       };
     case 'LOGOUT':
-      return { ...state, user: null }; // Reset user on logout
+      return { ...state, user: null };  // Reset user on logout
     default:
       return state;
   }
@@ -72,3 +73,4 @@ export const useUser = () => {
   }
   return context;
 };
+

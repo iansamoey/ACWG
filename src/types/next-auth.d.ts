@@ -1,10 +1,15 @@
-declare module 'next-auth' {
+import NextAuth from "next-auth"
+
+declare module "next-auth" {
   interface User {
-    id: string; // Ensure id is defined
-    isAdmin?: boolean; // Optional property
+    id: string
+    email: string
+    name: string
+    isAdmin?: boolean
   }
 
   interface Session {
-    user: User; // Ensure user includes the extended User type
+    user: User
   }
 }
+
