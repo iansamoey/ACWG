@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; 
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import { writeFile } from "fs/promises";
@@ -13,14 +13,26 @@ export const config = {
 // GET: Fetch user orders
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
-  await dbConnect();
+  // Ensure params are accessed asynchronously within the context
+  const { userId } = await Promise.resolve(params);  // Safe await access
 
-  const { userId } = await context.params;
+  await dbConnect();
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '10');
 
   try {
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    const skip = (page - 1) * limit;
+
+    const totalOrders = await Order.countDocuments({ userId });
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    const orders = await Order.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     if (!orders || orders.length === 0) {
       return NextResponse.json(
@@ -29,7 +41,12 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(orders, { status: 200 });
+    return NextResponse.json({
+      orders,
+      currentPage: page,
+      totalPages,
+      totalOrders
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching user orders:", error);
     return NextResponse.json(
@@ -42,11 +59,12 @@ export async function GET(
 // POST: Create a new order
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
-  await dbConnect();
+  // Ensure params are accessed asynchronously within the context
+  const { userId } = await Promise.resolve(params);
 
-  const { userId } = await context.params;
+  await dbConnect();
 
   try {
     const formData = await request.formData();
@@ -59,8 +77,7 @@ export async function POST(
     if (!serviceName || !description || !price || !total) {
       return NextResponse.json(
         {
-          error:
-            "Invalid request: serviceName, description, price, and total are required",
+          error: "Invalid request: serviceName, description, price, and total are required",
         },
         { status: 400 }
       );

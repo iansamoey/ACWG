@@ -11,7 +11,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import React from 'react';
 
-
 interface Attachment {
   filename: string;
   path: string;
@@ -30,6 +29,7 @@ interface Order {
   price: number
   total: number
   status: string
+  paymentStatus: string
   createdAt: Date
   attachments: Attachment[]
   userDetails: UserDetails
@@ -153,6 +153,7 @@ export default function ViewOrders() {
                 <TableHead>Price</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Payment Status</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Attachments</TableHead>
                 <TableHead>Actions</TableHead>
@@ -171,6 +172,11 @@ export default function ViewOrders() {
                   <TableCell>
                     <Badge className={statusColors[order.status as keyof typeof statusColors]}>
                       {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'}>
+                      {order.paymentStatus}
                     </Badge>
                   </TableCell>
                   <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
@@ -218,3 +224,4 @@ export default function ViewOrders() {
     </Card>
   )
 }
+

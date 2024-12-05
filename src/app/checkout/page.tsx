@@ -1,4 +1,4 @@
-'use client'; // This directive makes the component a client component
+'use client';
 
 import React from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
@@ -6,7 +6,6 @@ import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
 import { useRouter } from 'next/navigation';
 
-// Define the structure of the order
 interface OrderDetails {
   userId: string | null;
   items: Array<{
@@ -16,9 +15,9 @@ interface OrderDetails {
     quantity: number;
   }>;
   total: number;
+  paymentStatus: string;
 }
 
-// Define types for PayPal data and actions
 interface PayPalOrderData {
   orderID: string;
 }
@@ -40,7 +39,6 @@ const Checkout: React.FC = () => {
   const router = useRouter();
   const totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  // Function to handle order submission
   const handleOrderSubmission = async (orderDetails: OrderDetails) => {
     try {
       const response = await fetch('/api/orders', {
@@ -48,19 +46,22 @@ const Checkout: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(orderDetails),
+        body: JSON.stringify({
+          ...orderDetails,
+          paymentStatus: 'paid',
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit order'); // Handle error if response is not OK
+        throw new Error('Failed to submit order');
       }
 
       const data = await response.json();
       console.log('Order submitted successfully:', data);
-      router.push('/dashboard'); // Redirect to dashboard or another page
+      router.push('/dashboard/userDashboard');
     } catch (error: unknown) {
       console.error('Error submitting order:', error);
-      alert('There was an error processing your order.');
+      alert('There was an error processing your order. Please try again.');
     }
   };
 
@@ -88,7 +89,6 @@ const Checkout: React.FC = () => {
           </div>
         )}
 
-        {/* PayPal Button */}
         <PayPalScriptProvider
           options={{
             "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
@@ -110,20 +110,18 @@ const Checkout: React.FC = () => {
               onApprove={async (data: PayPalOrderData, actions: PayPalActions) => {
                 const details = await actions.order.capture();
                 
-                // TypeScript now knows the payer's structure
                 const payerName = details.payer.name.given_name;
                 alert('Transaction completed by ' + payerName);
 
-                // Prepare order details to be saved
                 const orderDetails: OrderDetails = {
-                  userId: userState.user ? userState.user.id : null, // Ensure you get the user ID
+                  userId: userState.user ? userState.user.id : null,
                   items: state.items,
                   total: totalPrice,
+                  paymentStatus: 'paid',
                 };
 
-                // Ensure userId is not null before submitting order
                 if (orderDetails.userId) {
-                  await handleOrderSubmission(orderDetails); // Call the order submission function
+                  await handleOrderSubmission(orderDetails);
                 } else {
                   alert('User not authenticated. Please log in.');
                 }
@@ -141,3 +139,4 @@ const Checkout: React.FC = () => {
 };
 
 export default Checkout;
+

@@ -12,6 +12,7 @@ interface IOrder extends Document {
   price: number;
   total: number;
   status: string;
+  paymentStatus: string;
   createdAt: Date;
   updatedAt: Date;
   attachments: IAttachment[];
@@ -29,9 +30,11 @@ const orderSchema = new Schema<IOrder>({
   price: { type: Number, required: true },
   total: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'in-progress', 'completed', 'cancelled'], default: 'pending' },
+  paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
   attachments: [attachmentSchema],
 }, { timestamps: true });
 
 const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);
 
 export default Order;
+

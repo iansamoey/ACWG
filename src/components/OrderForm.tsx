@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ const OrderForm: React.FC = () => {
   const { state } = useUser();
   const { user } = state;
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   const [serviceName, setServiceName] = useState('');
   const [description, setDescription] = useState('');
@@ -22,9 +23,17 @@ const OrderForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      setError('You must be logged in to submit an order');
+    } else {
+      setError(null);
+    }
+  }, [status]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setAttachments(prev => [...prev, ...Array.from(e.target.files!)]); // Type assertion to prevent TypeScript errors
+      setAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
     }
   };
 
@@ -37,7 +46,7 @@ const OrderForm: React.FC = () => {
     setError(null);
     setIsSubmitting(true);
 
-    if (!user) {
+    if (status !== 'authenticated') {
       setError('You must be logged in to submit an order');
       setIsSubmitting(false);
       return;
@@ -53,14 +62,14 @@ const OrderForm: React.FC = () => {
     formData.append('serviceName', serviceName);
     formData.append('description', description);
     formData.append('price', price);
-    formData.append('total', price); // Assuming total is the same as price for now
+    formData.append('total', price);
 
     attachments.forEach((file, index) => {
       formData.append(`attachment${index}`, file);
     });
 
     try {
-      const response = await fetch(`/api/orders/user/${user.id}`, {
+      const response = await fetch(`/api/orders/user/${session.user.id}`, {
         method: 'POST',
         body: formData,
       });
@@ -149,14 +158,13 @@ const OrderForm: React.FC = () => {
           </div>
         )}
 
-        {/* Conditional Error Display */}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" disabled={isSubmitting || status !== 'authenticated'}>
           {isSubmitting ? 'Submitting...' : 'Submit Order'}
         </Button>
       </form>
@@ -165,3 +173,4 @@ const OrderForm: React.FC = () => {
 };
 
 export default OrderForm;
+
