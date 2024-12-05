@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ServiceItemProps {
   id: string;
@@ -13,6 +14,8 @@ interface ServiceItemProps {
 
 const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price }) => {
   const { dispatch } = useCart();
+  const [pages, setPages] = useState(1);
+  const [title, setTitle] = useState('');
 
   const addToCart = () => {
     dispatch({
@@ -20,8 +23,10 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
       payload: {
         id,
         name,
-        price,
+        price: price * pages,
         quantity: 1,
+        pages,
+        title: title.slice(0, 250), // Limit to 50 words (approx. 250 characters)
       },
     });
   };
@@ -32,8 +37,30 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
         <CardTitle className="text-2xl font-bold text-indigo-700">{name}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-semibold text-gray-700">${price.toFixed(2)}</p>
+      <CardContent className="space-y-4">
+        <p className="text-2xl font-semibold text-gray-700">${(price * pages).toFixed(2)}</p>
+        <div className="flex items-center">
+          <label htmlFor={`pages-${id}`} className="mr-2">Pages:</label>
+          <Input
+            id={`pages-${id}`}
+            type="number"
+            min="1"
+            value={pages}
+            onChange={(e) => setPages(Math.max(1, parseInt(e.target.value) || 1))}
+            className="w-20"
+          />
+        </div>
+        <div>
+          <label htmlFor={`title-${id}`} className="block mb-2">Description/Title (max 50 words):</label>
+          <Textarea
+            id={`title-${id}`}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full"
+            rows={3}
+            maxLength={250}
+          />
+        </div>
       </CardContent>
       <CardFooter>
         <Button 
