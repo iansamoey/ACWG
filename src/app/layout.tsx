@@ -1,4 +1,5 @@
 "use client";
+
 import './globals.css';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { CartProvider } from '../context/CartContext';
@@ -22,14 +23,14 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}>
-            <UserProvider>
-              <CartProvider>
+          <UserProvider>
+            <CartProvider>
+              <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "" }}>
                 {children}
                 <Toaster />
-              </CartProvider>
-            </UserProvider>
-          </PayPalScriptProvider>
+              </PayPalScriptProvider>
+            </CartProvider>
+          </UserProvider>
         </SessionProvider>
         <Analytics />
       </body>

@@ -33,6 +33,8 @@ interface Order {
   createdAt: Date
   attachments: Attachment[]
   userDetails: UserDetails
+  paypalOrderId: string
+  paypalTransactionId: string
 }
 
 const statusColors = {
@@ -154,6 +156,8 @@ export default function ViewOrders() {
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Payment Status</TableHead>
+                <TableHead>PayPal Order ID</TableHead>
+                <TableHead>PayPal Transaction ID</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Attachments</TableHead>
                 <TableHead>Actions</TableHead>
@@ -179,6 +183,8 @@ export default function ViewOrders() {
                       {order.paymentStatus}
                     </Badge>
                   </TableCell>
+                  <TableCell>{order.paypalOrderId || "N/A"}</TableCell>
+                  <TableCell>{order.paypalTransactionId || "N/A"}</TableCell>
                   <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
                   <TableCell>
                     {order.attachments && order.attachments.length > 0 ? (

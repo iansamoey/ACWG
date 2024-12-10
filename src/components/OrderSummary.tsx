@@ -1,76 +1,133 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useUser } from '@/context/UserContext';
-import { PayPalButtons } from '@paypal/react-paypal-js';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { Toast } from "@/components/ui/toast";
-
-interface PayPalOrderData {
-  orderID: string;
-}
-
-interface PayPalActions {
-  order: {
-    create: (orderDetails: {
-      purchase_units: Array<{ amount: { value: string } }>;
-    }) => Promise<{ id: string }>;
-    capture: () => Promise<{
-      payer: { name: { given_name: string }; payer_id: string };
-    }>;
-  };
-}
+import { PayPalButtons } from "@paypal/react-paypal-js";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation';
 
 const OrderSummary: React.FC = () => {
   const { state: cartState, clearCart } = useCart();
   const { state: userState } = useUser();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const totalPrice = cartState.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  const handleCreateOrder = async (data: Record<string, unknown>, actions: PayPalActions) => {
-    return actions.order.create({
-      purchase_units: [{
-        amount: { value: totalPrice.toFixed(2) },
-      }],
-    });
-  };
+  useEffect(() => {
+    if (!userState.loading && !userState.user) {
+      router.push('/login');
+    }
+  }, [userState, router]);
 
-  const handleApprove = async (data: PayPalOrderData, actions: PayPalActions) => {
-    setIsProcessing(true);
+  const createOrder = async () => {
     try {
-      const details = await actions.order.capture();
-      const response = await fetch('/api/orders', {
+      const response = await fetch('/api/orders/create-paypal-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: userState.user?.id,
           items: cartState.items,
           total: totalPrice,
-          status: 'pending',
-          paypalOrderId: data.orderID,
-          paypalPayerId: details.payer.payer_id,
         }),
       });
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+      const order = await response.json();
+      return order.id;
+    } catch (error) {
+      console.error('Error creating PayPal order:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create order. Please try again.",
+      });
+      throw error;
+    }
+  };
 
-      if (response.ok) {
+  const onApprove = async (data: any) => {
+    setIsProcessing(true);
+    try {
+      if (!userState.user?.id) {
+        throw new Error('User is not authenticated');
+      }
+
+      const response = await fetch('/api/orders/capture-paypal-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: data.orderID,
+          userId: userState.user.id,
+          items: cartState.items,
+          total: totalPrice,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to capture order');
+      }
+
+      const orderData = await response.json();
+      if (orderData.success) {
+        setOrderConfirmed(true);
+        setOrderId(orderData.order._id);
         clearCart();
-        router.push('/order-confirmation');
       } else {
-        throw new Error('Failed to save order');
+        throw new Error(orderData.error || 'Failed to capture order');
       }
     } catch (error) {
-      console.error('Error processing order:', error);
-      setError('Failed to process your order. Please try again.');
+      console.error('Error capturing PayPal order:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process your order. Please try again.",
+      });
     } finally {
       setIsProcessing(false);
     }
   };
+
+  if (userState.loading) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent>
+          <div className="flex justify-center items-center">
+            <Spinner className="mr-2" />
+            <span>Loading...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!userState.user) {
+    return null; // This will be handled by the useEffect hook above
+  }
+
+  if (orderConfirmed) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Order Confirmation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-lg mb-4">Thank you for your order!</p>
+          <p className="mb-2">Your order ID is: <span className="font-bold">{orderId}</span></p>
+          <p className="mb-4">We've received your order and it's currently pending. We'll process it shortly and send you an email with further details.</p>
+          <Button onClick={() => router.push('/')}>Return to Home</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -96,15 +153,15 @@ const OrderSummary: React.FC = () => {
           </div>
         ) : (
           <PayPalButtons
-            createOrder={handleCreateOrder}
-            onApprove={handleApprove}
+            createOrder={createOrder}
+            onApprove={onApprove}
             style={{ layout: "vertical" }}
           />
         )}
-        {error && <Toast variant="destructive">{error}</Toast>}
       </CardContent>
     </Card>
   );
 };
 
 export default OrderSummary;
+

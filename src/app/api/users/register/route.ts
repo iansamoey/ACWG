@@ -49,7 +49,7 @@ export async function POST(request: Request) {
             message: 'User registered successfully', 
             userId: result.insertedId,
             emailSent 
-        });
+        }, { status: 201 });  // Changed status to 201 for resource creation
     } catch (error: unknown) {
         if (error instanceof Error) {
             console.error('Error registering user:', error.message);

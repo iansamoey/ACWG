@@ -18,6 +18,8 @@ interface Order {
   status: string;
   paymentStatus: string;
   createdAt: string;
+  paypalOrderId: string;
+  paypalTransactionId: string;
 }
 
 interface OrdersResponse {
@@ -113,6 +115,8 @@ const OrderHistory: React.FC = () => {
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Payment Status</TableHead>
+                  <TableHead>PayPal Order ID</TableHead>
+                  <TableHead>PayPal Transaction ID</TableHead>
                   <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
@@ -133,6 +137,8 @@ const OrderHistory: React.FC = () => {
                         {order.paymentStatus}
                       </Badge>
                     </TableCell>
+                    <TableCell>{order.paypalOrderId}</TableCell>
+                    <TableCell>{order.paypalTransactionId}</TableCell>
                     <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))}

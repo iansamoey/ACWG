@@ -23,7 +23,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
         Our platform is dedicated to assisting you with high-quality, tailored essays, research support, 
         and academic guidance to help you succeed.
       </p>
-      <h3>Here’s how to make the most of your Georgia Essays experience:</h3>
+      <h3>Here's how to make the most of your Georgia Essays experience:</h3>
       <ul>
         <li><strong>Explore Services:</strong> Find expert help tailored to your specific needs.</li>
         <li><strong>Stay Updated:</strong> Check your dashboard for resources, deadlines, and offers.</li>
@@ -49,10 +49,53 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
   try {
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log('Email sent successfully. Response:', response);
+    console.log('Welcome email sent successfully. Response:', response);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending welcome email:', error);
     return false;
   }
 }
+
+export async function sendOrderConfirmationEmail(email: string, name: string, orderId: string, items: any[]) {
+  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+  sendSmtpEmail.subject = "Your Georgia Essays Order Confirmation";
+  sendSmtpEmail.htmlContent = `
+  <html>
+    <body style="font-family: Arial, sans-serif; color: #333;">
+      <h1 style="color: #2c3e50;">Order Confirmation</h1>
+      <p>Dear ${name},</p>
+      <p>Thank you for your order with Georgia Essays. We're pleased to confirm that we've received your order.</p>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <h3>Order Details:</h3>
+      <ul>
+        ${items.map(item => `<li>${item.name} - Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)}</li>`).join('')}
+      </ul>
+      <p><strong>Total:</strong> $${items.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</p>
+      <p>Your order is currently pending. We'll process it shortly and send you another email with further details.</p>
+      <p>If you have any questions about your order, please don't hesitate to contact us.</p>
+      <p>Thank you for choosing Georgia Essays!</p>
+      <br/>
+      <p>Best regards,</p>
+      <p><strong>The Georgia Essays Team</strong></p>
+      <hr style="border: none; border-top: 1px solid #ccc;"/>
+      <p style="font-size: 12px; color: #999;">
+        Need help? Contact us at <a href="mailto:essaysgeorgia@gmail.com">essaysgeorgia@gmail.com</a>.
+      </p>
+    </body>
+  </html>`;
+
+  sendSmtpEmail.sender = { name: "Georgia Essays", email: "essaysgeorgia@gmail.com" };
+  sendSmtpEmail.to = [{ email: email, name: name }];
+
+  try {
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('Order confirmation email sent successfully. Response:', response);
+    return true;
+  } catch (error) {
+    console.error('Error sending order confirmation email:', error);
+    return false;
+  }
+}
+

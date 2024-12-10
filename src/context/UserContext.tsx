@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { useSession } from 'next-auth/react';
 
-// Define the type for your user state
 export interface Request {
   id: string;
   description: string;
@@ -10,53 +10,70 @@ export interface Request {
 }
 
 export interface User {
-  id: string;            // Unique user ID
-  username: string;      // Added username field
+  id: string;
+  username: string;
   email: string;
   isAdmin: boolean;
   requests: Request[];
 }
 
 interface UserState {
-  user: User | null;      // User can be null until logged in
+  user: User | null;
+  loading: boolean;
 }
 
-// Define action types for better type safety
 type UserAction =
-  | { type: 'LOGIN'; payload: User }
-  | { type: 'LOGOUT' };
+  | { type: 'SET_USER'; payload: User }
+  | { type: 'CLEAR_USER' }
+  | { type: 'SET_LOADING'; payload: boolean };
 
 interface UserContextType {
   state: UserState;
   dispatch: React.Dispatch<UserAction>;
 }
 
-// Initial state
 const initialState: UserState = {
   user: null,
+  loading: true,
 };
 
-// Reducer function to manage user state
 const userReducer = (state: UserState, action: UserAction): UserState => {
   switch (action.type) {
-    case 'LOGIN':
-      return {
-        ...state,
-        user: action.payload,  // Set user on login (ensure 'username' is in payload)
-      };
-    case 'LOGOUT':
-      return { ...state, user: null };  // Reset user on logout
+    case 'SET_USER':
+      return { ...state, user: action.payload, loading: false };
+    case 'CLEAR_USER':
+      return { ...state, user: null, loading: false };
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
     default:
       return state;
   }
 };
 
-// Create the UserContext with the default value
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// Provider component
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(userReducer, initialState);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'loading') {
+      dispatch({ type: 'SET_LOADING', payload: true });
+    } else if (status === 'authenticated' && session?.user) {
+      dispatch({
+        type: 'SET_USER',
+        payload: {
+          id: session.user.id as string,
+          username: session.user.name as string,
+          email: session.user.email as string,
+          isAdmin: session.user.isAdmin as boolean,
+          requests: [], // You might want to fetch this data separately
+        },
+      });
+    } else {
+      dispatch({ type: 'CLEAR_USER' });
+    }
+  }, [session, status]);
 
   return (
     <UserContext.Provider value={{ state, dispatch }}>
@@ -65,7 +82,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom hook to use the user context
 export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
