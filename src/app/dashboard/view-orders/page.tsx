@@ -44,6 +44,11 @@ const statusColors = {
   cancelled: "bg-red-200 text-red-800",
 }
 
+const paymentStatusColors: { [key: string]: string } = {
+  paid: "bg-green-200 text-green-800",
+  unpaid: "bg-yellow-200 text-yellow-800",
+};
+
 export default function ViewOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -179,7 +184,7 @@ export default function ViewOrders() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'}>
+                    <Badge className={paymentStatusColors[order.paymentStatus] || paymentStatusColors.unpaid}>
                       {order.paymentStatus}
                     </Badge>
                   </TableCell>

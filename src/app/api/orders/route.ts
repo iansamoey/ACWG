@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 
-
 export async function GET() {
   await dbConnect();
 
@@ -26,6 +25,17 @@ export async function GET() {
         }
       },
       {
+        $addFields: {
+          paymentStatus: {
+            $cond: {
+              if: { $ne: ["$paypalTransactionId", null] },
+              then: "paid",
+              else: "unpaid"
+            }
+          }
+        }
+      },
+      {
         $project: {
           _id: 1,
           userId: 1,
@@ -34,8 +44,11 @@ export async function GET() {
           price: 1,
           total: 1,
           status: 1,
+          paymentStatus: 1,
           createdAt: 1,
           attachments: 1,
+          paypalOrderId: 1,
+          paypalTransactionId: 1,
           "userDetails.username": 1,
           "userDetails.email": 1
         }
@@ -50,3 +63,4 @@ export async function GET() {
     return NextResponse.json({ message: "Failed to fetch orders" }, { status: 500 });
   }
 }
+
