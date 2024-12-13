@@ -10,6 +10,12 @@ if (apiKey) {
   throw new Error('BREVO_API_KEY is not defined in the environment variables.');
 }
 
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
 export async function sendWelcomeEmail(email: string, name: string) {
   const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
@@ -57,7 +63,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
   }
 }
 
-export async function sendOrderConfirmationEmail(email: string, name: string, orderId: string, items: any[]) {
+export async function sendOrderConfirmationEmail(email: string, name: string, orderId: string, items: OrderItem[]) {
   const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
   sendSmtpEmail.subject = "Your Georgia Essays Order Confirmation";
@@ -98,4 +104,3 @@ export async function sendOrderConfirmationEmail(email: string, name: string, or
     return false;
   }
 }
-

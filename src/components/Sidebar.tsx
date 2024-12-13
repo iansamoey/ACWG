@@ -1,18 +1,17 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { DashboardSidebar } from '@/components/ui/sidebar'
-import { useCart } from '@/context/CartContext'
-import { useSession, signOut } from 'next-auth/react'
+import React from 'react';
+import { DashboardSidebar } from '@/components/ui/sidebar';
+import { Session } from 'next-auth';
 
 interface SidebarProps {
-  setActiveTab: (tab: string) => void
-  isSidebarOpen: boolean
-  setIsSidebarOpen: (isOpen: boolean) => void
-  cartItems: number
-  onLogout: () => void
-  session: any
-  closeSidebar: () => void
+  setActiveTab: (tab: string) => void;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
+  cartItems: number;
+  onLogout: () => void;
+  session: Session | null;
+  closeSidebar: () => void;
 }
 
 export default function Sidebar({ 
@@ -25,9 +24,9 @@ export default function Sidebar({
   closeSidebar
 }: SidebarProps) {
   const handleSetActiveTab = (tab: string) => {
-    setActiveTab(tab)
-    closeSidebar()
-  }
+    setActiveTab(tab);
+    closeSidebar();
+  };
 
   return (
     <DashboardSidebar 
@@ -38,6 +37,6 @@ export default function Sidebar({
       onLogout={onLogout}
       session={session}
     />
-  )
+  );
 }
 

@@ -46,7 +46,7 @@ const CartContext = createContext<{
 const cartReducer = (state: CartState, action: Action) => {
   switch (action.type) {
     case 'ADD_ITEM':
-    case 'ADD_TO_CART':
+    case 'ADD_TO_CART': {
       const existingItemIndex = state.items.findIndex(item => item.id === action.payload.id);
       if (existingItemIndex > -1) {
         const updatedItems = [...state.items];
@@ -63,6 +63,7 @@ const cartReducer = (state: CartState, action: Action) => {
         ...state,
         items: [...state.items, action.payload],
       };
+    }
     case 'REMOVE_ITEM':
       return {
         ...state,
@@ -125,4 +126,3 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useCart = () => {
   return useContext(CartContext);
 };
-

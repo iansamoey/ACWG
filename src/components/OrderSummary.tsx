@@ -10,6 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
+interface PayPalOrderData {
+  orderID: string;
+}
+
 const OrderSummary: React.FC = () => {
   const { state: cartState, clearCart } = useCart();
   const { state: userState } = useUser();
@@ -53,7 +57,7 @@ const OrderSummary: React.FC = () => {
     }
   };
 
-  const onApprove = async (data: any) => {
+  const onApprove = async (data: PayPalOrderData) => {
     setIsProcessing(true);
     try {
       if (!userState.user?.id) {
@@ -122,7 +126,7 @@ const OrderSummary: React.FC = () => {
         <CardContent>
           <p className="text-lg mb-4">Thank you for your order!</p>
           <p className="mb-2">Your order ID is: <span className="font-bold">{orderId}</span></p>
-          <p className="mb-4">We've received your order and it's currently pending. We'll process it shortly and send you an email with further details.</p>
+          <p className="mb-4">We&apos;ve received your order and it&apos;s currently pending. We&apos;ll process it shortly and send you an email with further details.</p>
           <Button onClick={() => router.push('/')}>Return to Home</Button>
         </CardContent>
       </Card>
@@ -164,4 +168,3 @@ const OrderSummary: React.FC = () => {
 };
 
 export default OrderSummary;
-

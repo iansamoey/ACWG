@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import React from 'react';
-import { useUser } from "@/context/UserContext";
 import ManageUsers from "@/app/dashboard/manage-users/page";
 import ManageContent from "@/app/dashboard/manage-content/page";
 import ViewOrders from "@/app/dashboard/view-orders/page";
@@ -14,12 +13,12 @@ import { withAuth } from '@/components/auth/with-auth';
 import { Button } from "@/components/ui/button";
 import { Menu } from 'lucide-react';
 import { useCart } from "@/context/CartContext";
+import { Session } from "next-auth";
 
 function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState("ManageUsers");
   const router = useRouter();
   const { data: session } = useSession();
-  const { state: userState } = useUser();
   const [userName, setUserName] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { state: cartState } = useCart();
@@ -68,7 +67,7 @@ function AdminDashboard() {
         setIsSidebarOpen={setIsSidebarOpen}
         cartItems={cartItems}
         onLogout={handleSignOut}
-        session={session}
+        session={session as Session | null}
         closeSidebar={closeSidebar}
       />
       <div className="flex-1 flex flex-col overflow-hidden">

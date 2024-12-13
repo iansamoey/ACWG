@@ -1,51 +1,45 @@
-"use client"
-
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { Menu, X, Users, FileText, LogOut } from 'lucide-react'
-import { useCart } from '@/context/CartContext'
-import { useRouter } from 'next/navigation'
-import { useSession, signOut } from 'next-auth/react'
-import { ShoppingCart } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-import Link from "next/link"
-import { DialogTitle } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { Menu, Users, FileText, LogOut, ShoppingCart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { Session } from 'next-auth';
 
 interface SidebarProps {
-  children: React.ReactNode
-  className?: string
-  isSidebarOpen: boolean
-  setIsSidebarOpen: (isOpen: boolean) => void
+  children: React.ReactNode;
+  className?: string;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
 }
 
 interface SidebarHeaderProps {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
 }
 
 interface SidebarContentProps {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
 }
 
 interface SidebarMenuProps {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
 }
 
 interface SidebarMenuItemProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface SidebarMenuButtonProps {
-  children: React.ReactNode
-  asChild?: boolean
-  onClick?: () => void
-  className?: string
+  children: React.ReactNode;
+  asChild?: boolean;
+  onClick?: () => void;
+  className?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ children, className, isSidebarOpen, setIsSidebarOpen }) => {
@@ -75,27 +69,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ children, className, isSidebar
         {children}
       </div>
     </>
-  )
+  );
 }
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, className }) => (
   <div className={`bg-gray-700 p-2 ${className}`}>{children}</div>
-)
+);
 
 export const SidebarContent: React.FC<SidebarContentProps> = ({ children, className }) => (
   <div className={`p-4 ${className}`}>{children}</div>
-)
+);
 
 export const SidebarMenu: React.FC<SidebarMenuProps> = ({ children, className }) => (
   <ul className={`space-y-2 ${className}`}>{children}</ul>
-)
+);
 
 export const SidebarMenuItem: React.FC<SidebarMenuItemProps> = ({ children }) => (
   <li>{children}</li>
-)
+);
 
 export const SidebarMenuButton: React.FC<SidebarMenuButtonProps> = ({ children, asChild, onClick, className }) => {
-  const Comp = asChild ? Slot : Button
+  const Comp = asChild ? Slot : Button;
   return (
     <Comp
       variant="ghost"
@@ -104,45 +98,40 @@ export const SidebarMenuButton: React.FC<SidebarMenuButtonProps> = ({ children, 
     >
       {children}
     </Comp>
-  )
+  );
 }
 
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="flex">{children}</div>
-)
+);
 
 interface DashboardSidebarProps {
-  setActiveTab: (tab: string) => void
-  cartItems: number
-  onLogout: () => void
-  session: any
-  isSidebarOpen: boolean
-  setIsSidebarOpen: (isOpen: boolean) => void
+  setActiveTab: (tab: string) => void;
+  onLogout: () => void;
+  session: Session | null;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
+  cartItems: number;
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ 
   setActiveTab, 
-  cartItems, 
   onLogout, 
   session,
   isSidebarOpen,
-  setIsSidebarOpen
+  setIsSidebarOpen,
+  cartItems
 }) => {
-  const { state: cartState } = useCart()
-  const router = useRouter()
-  const { data: sessionData } = useSession()
 
   const handleLogout = () => {
-    onLogout()
-    setIsSidebarOpen(false)
-  }
+    onLogout();
+    setIsSidebarOpen(false);
+  };
 
   const handleSetActiveTab = (tab: string) => {
-    setActiveTab(tab)
-    setIsSidebarOpen(false)
-  }
-
-  const totalItems = cartState.items.reduce((sum, item) => sum + item.quantity, 0)
+    setActiveTab(tab);
+    setIsSidebarOpen(false);
+  };
 
   return (
     <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
@@ -185,15 +174,15 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   <div className="flex items-center w-full">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     <span>View Cart Status</span>
-                    {totalItems > 0 && (
+                    {cartItems > 0 && (
                       <Badge
                         variant="destructive"
                         className={cn(
                           'ml-auto',
-                          totalItems > 99 ? 'w-7' : 'w-5',
+                          cartItems > 99 ? 'w-7' : 'w-5',
                         )}
                       >
-                        {totalItems > 99 ? '99+' : totalItems}
+                        {cartItems > 99 ? '99+' : cartItems}
                       </Badge>
                     )}
                   </div>
@@ -240,6 +229,5 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>
-  )
-}
-
+  );
+};

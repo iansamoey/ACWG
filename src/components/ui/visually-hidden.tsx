@@ -1,10 +1,8 @@
-import * as React from "react"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@/lib/utils"
-
-export interface VisuallyHiddenProps extends React.HTMLAttributes<HTMLSpanElement> {}
-
-const VisuallyHidden = React.forwardRef<HTMLSpanElement, VisuallyHiddenProps>(
+// You can use React.HTMLAttributes directly if no custom props are needed now.
+const VisuallyHidden = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
   ({ className, ...props }, ref) => {
     return (
       <span
@@ -15,10 +13,10 @@ const VisuallyHidden = React.forwardRef<HTMLSpanElement, VisuallyHiddenProps>(
         )}
         {...props}
       />
-    )
+    );
   }
-)
-VisuallyHidden.displayName = "VisuallyHidden"
+);
 
-export { VisuallyHidden }
+VisuallyHidden.displayName = "VisuallyHidden";
 
+export { VisuallyHidden };
