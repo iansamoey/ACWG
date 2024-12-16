@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"; 
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import { writeFile } from "fs/promises";
@@ -10,13 +10,18 @@ export const config = {
   },
 };
 
+type RouteContext = {
+  params: Promise<{
+    userId: string;
+  }>;
+};
+
 // GET: Fetch user orders
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: RouteContext
 ) {
-  // Ensure params are accessed asynchronously within the context
-  const { userId } = await Promise.resolve(params);  // Safe await access
+  const { userId } = await context.params;  // Await the Promise
 
   await dbConnect();
   const { searchParams } = new URL(request.url);
@@ -59,10 +64,9 @@ export async function GET(
 // POST: Create a new order
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: RouteContext
 ) {
-  // Ensure params are accessed asynchronously within the context
-  const { userId } = await Promise.resolve(params);
+  const { userId } = await context.params;  // Await the Promise
 
   await dbConnect();
 

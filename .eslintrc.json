@@ -1,9 +1,12 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
+  "extends": [
+    "next/core-web-vitals", 
+    "next/typescript"
+  ],
   "rules": {
-    "no-var": "off",
+    "no-var": "off",  // Allow use of 'var' instead of 'let' or 'const'
     "react/prop-types": "off",  // Disable prop-types validation for React components
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],  // Warn about unused variables, ignore those starting with _
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],  // Warn about unused variables, ignore those starting with '_'
     "react/react-in-jsx-scope": "off",  // Not needed in Next.js since React is globally available
     "react/jsx-uses-react": "off",  // Disable React import checking (Next.js 11+ doesn't require it)
     "react/jsx-uses-vars": "warn"  // Warn if variables in JSX aren't used
