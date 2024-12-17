@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import React from "react";
 
 const LoginPage = () => {
@@ -99,7 +100,7 @@ const LoginPage = () => {
               </div>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-4">
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -110,6 +111,11 @@ const LoginPage = () => {
                 "Log In"
               )}
             </Button>
+            <div className="w-full text-center">
+              <Link href="/auth/signup" className="text-sm text-grey-600 ">
+                Don&apos;t have an account? Sign up
+              </Link>
+            </div>
           </CardFooter>
         </form>
       </Card>
@@ -118,3 +124,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
