@@ -42,7 +42,8 @@ const OrderSummary: React.FC = () => {
         }),
       });
       if (!response.ok) {
-        throw new Error('Failed to create order');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create order');
       }
       const order = await response.json();
       return order.id;
@@ -70,7 +71,10 @@ const OrderSummary: React.FC = () => {
         body: JSON.stringify({
           orderId: data.orderID,
           userId: userState.user.id,
-          items: cartState.items,
+          items: cartState.items.map(item => ({
+            ...item,
+            pages: item.pages || 1, // Ensure pages is always set
+          })),
           total: totalPrice,
         }),
       });
@@ -168,3 +172,4 @@ const OrderSummary: React.FC = () => {
 };
 
 export default OrderSummary;
+

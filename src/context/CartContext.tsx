@@ -9,6 +9,8 @@ interface CartItem {
   quantity: number;
   pages: number;
   title: string;
+  totalWords?: number; // Added totalWords
+  attachment?: string; // Added attachment
 }
 
 interface CartState {
@@ -21,7 +23,9 @@ type Action =
   | { type: 'ADD_TO_CART'; payload: CartItem }
   | { type: 'CLEAR_CART' }
   | { type: 'UPDATE_ITEM_PAGES'; payload: { id: string; pages: number } }
-  | { type: 'UPDATE_ITEM_TITLE'; payload: { id: string; title: string } };
+  | { type: 'UPDATE_ITEM_TITLE'; payload: { id: string; title: string } }
+  | { type: 'UPDATE_ITEM_TOTAL_WORDS'; payload: { id: string; totalWords: number } }
+  | { type: 'UPDATE_ITEM_ATTACHMENT'; payload: { id: string; attachment: string } };
 
 const initialState: CartState = {
   items: [],
@@ -34,6 +38,8 @@ const CartContext = createContext<{
   clearCart: () => void;
   updateItemPages: (id: string, pages: number) => void;
   updateItemTitle: (id: string, title: string) => void;
+  updateItemTotalWords: (id: string, totalWords: number) => void;
+  updateItemAttachment: (id: string, attachment: string) => void;
 }>({
   state: initialState,
   dispatch: () => null,
@@ -41,6 +47,8 @@ const CartContext = createContext<{
   clearCart: () => null,
   updateItemPages: () => null,
   updateItemTitle: () => null,
+  updateItemTotalWords: () => null,
+  updateItemAttachment: () => null,
 });
 
 const cartReducer = (state: CartState, action: Action) => {
@@ -56,6 +64,8 @@ const cartReducer = (state: CartState, action: Action) => {
           pages: action.payload.pages,
           price: action.payload.price,
           title: action.payload.title,
+          totalWords: action.payload.totalWords,
+          attachment: action.payload.attachment,
         };
         return { ...state, items: updatedItems };
       }
@@ -92,6 +102,24 @@ const cartReducer = (state: CartState, action: Action) => {
             : item
         ),
       };
+    case 'UPDATE_ITEM_TOTAL_WORDS':
+      return {
+        ...state,
+        items: state.items.map(item =>
+          item.id === action.payload.id
+            ? { ...item, totalWords: action.payload.totalWords }
+            : item
+        ),
+      };
+    case 'UPDATE_ITEM_ATTACHMENT':
+      return {
+        ...state,
+        items: state.items.map(item =>
+          item.id === action.payload.id
+            ? { ...item, attachment: action.payload.attachment }
+            : item
+        ),
+      };
     default:
       return state;
   }
@@ -116,8 +144,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'UPDATE_ITEM_TITLE', payload: { id, title } });
   };
 
+  const updateItemTotalWords = (id: string, totalWords: number) => {
+    dispatch({ type: 'UPDATE_ITEM_TOTAL_WORDS', payload: { id, totalWords } });
+  };
+
+  const updateItemAttachment = (id: string, attachment: string) => {
+    dispatch({ type: 'UPDATE_ITEM_ATTACHMENT', payload: { id, attachment } });
+  };
+
   return (
-    <CartContext.Provider value={{ state, dispatch, removeFromCart, clearCart, updateItemPages, updateItemTitle }}>
+    <CartContext.Provider value={{ state, dispatch, removeFromCart, clearCart, updateItemPages, updateItemTitle, updateItemTotalWords, updateItemAttachment }}>
       {children}
     </CartContext.Provider>
   );

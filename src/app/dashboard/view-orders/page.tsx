@@ -35,6 +35,8 @@ interface Order {
   userDetails: UserDetails
   paypalOrderId: string
   paypalTransactionId: string
+  pages: number
+  totalWords: number
 }
 
 const statusColors = {
@@ -157,6 +159,8 @@ export default function ViewOrders() {
                 <TableHead>Email</TableHead>
                 <TableHead>Service Name</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Pages</TableHead>
+                <TableHead>Total Words</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
@@ -176,6 +180,8 @@ export default function ViewOrders() {
                   <TableCell>{order.userDetails?.email || "N/A"}</TableCell>
                   <TableCell>{order.serviceName}</TableCell>
                   <TableCell>{order.description}</TableCell>
+                  <TableCell>{order.pages}</TableCell>
+                  <TableCell>{order.totalWords}</TableCell>
                   <TableCell>${order.price?.toFixed(2)}</TableCell>
                   <TableCell>${order.total?.toFixed(2)}</TableCell>
                   <TableCell>

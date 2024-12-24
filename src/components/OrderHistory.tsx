@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+interface Attachment {
+  filename: string;
+  path: string;
+}
+
 interface Order {
   _id: string;
   serviceName: string;
@@ -20,6 +25,9 @@ interface Order {
   createdAt: string;
   paypalOrderId: string;
   paypalTransactionId: string;
+  attachments: Attachment[];
+  pages: number;
+  totalWords: number;
 }
 
 interface OrdersResponse {
@@ -112,12 +120,15 @@ const OrderHistory: React.FC = () => {
                   <TableHead>Order ID</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Pages</TableHead>
+                  <TableHead>Total Words</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Payment Status</TableHead>
                   <TableHead>PayPal Order ID</TableHead>
                   <TableHead>PayPal Transaction ID</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Attachments</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -126,6 +137,8 @@ const OrderHistory: React.FC = () => {
                     <TableCell>{order._id}</TableCell>
                     <TableCell>{order.serviceName}</TableCell>
                     <TableCell>{order.description}</TableCell>
+                    <TableCell>{order.pages}</TableCell>
+                    <TableCell>{order.totalWords}</TableCell>
                     <TableCell>${order.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
@@ -140,6 +153,24 @@ const OrderHistory: React.FC = () => {
                     <TableCell>{order.paypalOrderId}</TableCell>
                     <TableCell>{order.paypalTransactionId}</TableCell>
                     <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {order.attachments && order.attachments.length > 0 ? (
+                        <div className="flex flex-col space-y-1">
+                          {order.attachments.map((attachment, index) => (
+                            <Button
+                              key={index}
+                              variant="link"
+                              className="p-0 h-auto font-normal text-left"
+                              onClick={() => window.open(attachment.path, '_blank')}
+                            >
+                              {attachment.filename}
+                            </Button>
+                          ))}
+                        </div>
+                      ) : (
+                        "No attachments"
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

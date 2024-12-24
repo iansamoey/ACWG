@@ -9,7 +9,7 @@ export async function GET() {
     const orders = await Order.aggregate([
       {
         $lookup: {
-          from: "users", // Make sure this matches your users collection name
+          from: "users",
           let: { userId: { $toObjectId: "$userId" } },
           pipeline: [
             { $match: { $expr: { $eq: ["$_id", "$$userId"] } } },
@@ -50,12 +50,14 @@ export async function GET() {
           paypalOrderId: 1,
           paypalTransactionId: 1,
           "userDetails.username": 1,
-          "userDetails.email": 1
+          "userDetails.email": 1,
+          pages: 1,
+          totalWords: 1
         }
       }
     ]);
 
-    console.log("Fetched orders:", JSON.stringify(orders, null, 2)); // Debug log
+    console.log("Fetched orders:", JSON.stringify(orders, null, 2));
 
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {

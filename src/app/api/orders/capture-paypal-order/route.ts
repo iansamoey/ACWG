@@ -5,6 +5,15 @@ import User from "@/models/User";
 import fetch from "node-fetch";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  pages: number;
+  attachment?: string;
+}
+
 interface CaptureData {
   status: string;
   purchase_units: Array<{
@@ -14,12 +23,6 @@ interface CaptureData {
       }>;
     };
   }>;
-}
-
-interface OrderItem {
-  name: string;
-  price: number;
-  quantity: number;
 }
 
 interface PayPalTokenResponse {
@@ -42,6 +45,8 @@ export async function POST(req: Request) {
     const captureData = await capturePayPalOrder(accessToken, orderId);
 
     if ((captureData as CaptureData).status === "COMPLETED") {
+      const totalPages = items.reduce((sum: number, item: OrderItem) => sum + item.pages * item.quantity, 0);
+
       const order = new Order({
         userId,
         items,
@@ -52,6 +57,10 @@ export async function POST(req: Request) {
         paypalTransactionId: (captureData as CaptureData).purchase_units[0].payments.captures[0].id,
         serviceName: (items[0] as OrderItem).name,
         description: `Order for ${(items as OrderItem[]).map(item => item.name).join(", ")}`,
+        pages: totalPages,
+        attachments: items.flatMap((item: OrderItem) => 
+          item.attachment ? [{ filename: item.attachment.split('/').pop() || '', path: item.attachment }] : []
+        ),
       });
 
       await order.save();
@@ -94,6 +103,13 @@ async function capturePayPalOrder(accessToken: string, orderId: string): Promise
       Authorization: `Bearer ${accessToken}`,
     },
   });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("PayPal API Error:", errorData);
+    throw new Error(`PayPal API error: ${response.status} ${response.statusText}`);
+  }
+  
   return response.json();
 }
 
