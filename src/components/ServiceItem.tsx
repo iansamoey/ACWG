@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon, Upload } from 'lucide-react';
 
 interface ServiceItemProps {
   id: string;
@@ -17,7 +19,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
   const { dispatch } = useCart();
   const [pages, setPages] = useState(1);
   const [title, setTitle] = useState('');
-  const [totalWords, setTotalWords] = useState(0);
+  const [totalWords, setTotalWords] = useState(250);
   const [attachment, setAttachment] = useState<File | null>(null);
   const { toast } = useToast();
 
@@ -25,6 +27,18 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
     if (e.target.files && e.target.files[0]) {
       setAttachment(e.target.files[0]);
     }
+  };
+
+  const handlePagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPages = Math.max(1, parseInt(e.target.value) || 1);
+    setPages(newPages);
+    setTotalWords(Math.max(250, newPages * 250));
+  };
+
+  const handleWordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newWords = Math.max(0, parseInt(e.target.value) || 0);
+    setTotalWords(newWords);
+    setPages(Math.max(1, Math.ceil(newWords / 250)));
   };
 
   const addToCart = async () => {
@@ -78,59 +92,80 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
   };
 
   return (
-    <Card className="h-full flex flex-col justify-between transition-shadow hover:shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-indigo-700">{name}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="h-full flex flex-col justify-between transition-shadow hover:shadow-lg bg-gradient-to-br from-white to-gray-100">
+      <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
+        <CardTitle className="text-2xl font-bold">{name}</CardTitle>
+        <CardDescription className="text-gray-200">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-2xl font-semibold text-gray-700">${(price * pages).toFixed(2)}</p>
-        <div className="flex items-center">
-          <label htmlFor={`pages-${id}`} className="mr-2">Pages:</label>
-          <Input
-            id={`pages-${id}`}
-            type="number"
-            min="1"
-            value={pages}
-            onChange={(e) => setPages(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-20"
-          />
+      <CardContent className="space-y-6 p-6">
+        <Alert className="bg-blue-50 border-blue-200">
+          <InfoIcon className="h-4 w-4 text-blue-500" />
+          <AlertTitle className="text-blue-700">Word Count Information</AlertTitle>
+          <AlertDescription className="text-blue-600">
+            Each page contains approximately 250 words.Adjust either pages or total words to meet your requirements.For long descriptions please attach instructions.
+          </AlertDescription>
+        </Alert>
+        <div className="flex justify-between items-center">
+          <p className="text-3xl font-bold text-indigo-700">${(price * pages).toFixed(2)}</p>
+          <div className="flex items-center space-x-2">
+            <Input
+              id={`pages-${id}`}
+              type="number"
+              min="1"
+              value={pages}
+              onChange={handlePagesChange}
+              className="w-20 text-center"
+            />
+            <span className="text-gray-600">pages</span>
+          </div>
         </div>
-        <div className="flex items-center">
-          <label htmlFor={`words-${id}`} className="mr-2">Total Words:</label>
+        <div className="flex items-center space-x-2">
           <Input
             id={`words-${id}`}
             type="number"
             min="0"
             value={totalWords}
-            onChange={(e) => setTotalWords(Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-20"
+            onChange={handleWordsChange}
+            className="w-24 text-center"
           />
+          <span className="text-gray-600">total words</span>
         </div>
         <div>
-          <label htmlFor={`title-${id}`} className="block mb-2">Description/Title:</label>
+          <label htmlFor={`title-${id}`} className="block mb-2 font-medium text-gray-700">Description/Title:</label>
           <Textarea
             id={`title-${id}`}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full"
+            className="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
             rows={3}
+            placeholder="Enter a brief description or title for your order"
           />
         </div>
         <div>
-          <label htmlFor={`attachment-${id}`} className="block mb-2">Attachment:</label>
-          <Input
-            id={`attachment-${id}`}
-            type="file"
-            onChange={handleFileChange}
-            className="w-full"
-          />
+          <label htmlFor={`attachment-${id}`} className="block mb-2 font-medium text-gray-700">Attachment:</label>
+          <div className="flex items-center space-x-2">
+            <Input
+              id={`attachment-${id}`}
+              type="file"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <Button
+              onClick={() => document.getElementById(`attachment-${id}`)?.click()}
+              variant="outline"
+              className="w-full flex items-center justify-center"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {attachment ? attachment.name : 'Choose file'}
+            </Button>
+          </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="bg-gray-50 rounded-b-lg">
         <Button
           onClick={addToCart}
-          className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600"
+          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          disabled={price * pages === 0 || pages === 0 || totalWords === 0}
         >
           Add to Cart
         </Button>
@@ -140,3 +175,4 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
 };
 
 export default ServiceItem;
+

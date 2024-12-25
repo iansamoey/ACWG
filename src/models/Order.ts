@@ -1,11 +1,12 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, model, Model, Types } from "mongoose";
 
-interface IAttachment {
+export interface IAttachment {
   filename: string;
   path: string;
 }
 
-interface IOrder extends Document {
+export interface IOrder extends Document {
+  _id: Types.ObjectId;
   userId: string;
   items: Array<{
     id: string;
@@ -13,6 +14,7 @@ interface IOrder extends Document {
     price: number;
     quantity: number;
     pages: number;
+    totalWords: number;
   }>;
   total: number;
   status: string;
@@ -43,23 +45,55 @@ const orderSchema = new Schema<IOrder>(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         pages: { type: Number, required: true },
+        totalWords: { type: Number, required: true },
       }
     ],
     total: { type: Number, required: true },
-    status: { type: String, enum: ["pending", "in-progress", "completed", "cancelled"], default: "pending" },
-    paymentStatus: { type: String, enum: ["unpaid", "paid", "refunded"], default: "unpaid" },
+    status: { 
+      type: String, 
+      enum: ["pending", "in-progress", "completed", "cancelled"], 
+      default: "pending" 
+    },
+    paymentStatus: { 
+      type: String, 
+      enum: ["unpaid", "paid", "refunded"], 
+      default: "unpaid" 
+    },
     paypalOrderId: { type: String, required: true },
     paypalTransactionId: { type: String, required: true },
     attachments: [attachmentSchema],
     serviceName: { type: String, required: true },
     description: { type: String, required: true },
-    pages: { type: Number, required: true },
-    totalWords: { type: Number, required: false },
+    pages: { 
+      type: Number, 
+      required: true,
+      min: 1 
+    },
+    totalWords: { 
+      type: Number, 
+      required: true,
+      default: function(this: IOrder): number {
+        return this.pages * 250;
+      },
+      min: 0
+    },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
-const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", orderSchema);
+// Add a pre-save middleware to ensure totalWords is set
+orderSchema.pre('save', function(next) {
+  if (!this.totalWords && this.pages) {
+    this.totalWords = this.pages * 250;
+  }
+  next();
+});
+
+const Order: Model<IOrder> = mongoose.models.Order || model<IOrder>("Order", orderSchema);
 
 export default Order;
 

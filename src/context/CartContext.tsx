@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useReducer, useContext } from 'react';
+import React, { createContext, useReducer, useContext, useEffect } from 'react';
 
 interface CartItem {
   id: string;
@@ -9,8 +9,8 @@ interface CartItem {
   quantity: number;
   pages: number;
   title: string;
-  totalWords?: number; // Added totalWords
-  attachment?: string; // Added attachment
+  totalWords?: number;
+  attachment?: string;
 }
 
 interface CartState {
@@ -25,7 +25,8 @@ type Action =
   | { type: 'UPDATE_ITEM_PAGES'; payload: { id: string; pages: number } }
   | { type: 'UPDATE_ITEM_TITLE'; payload: { id: string; title: string } }
   | { type: 'UPDATE_ITEM_TOTAL_WORDS'; payload: { id: string; totalWords: number } }
-  | { type: 'UPDATE_ITEM_ATTACHMENT'; payload: { id: string; attachment: string } };
+  | { type: 'UPDATE_ITEM_ATTACHMENT'; payload: { id: string; attachment: string } }
+  | { type: 'LOAD_CART'; payload: CartItem[] };
 
 const initialState: CartState = {
   items: [],
@@ -52,6 +53,7 @@ const CartContext = createContext<{
 });
 
 const cartReducer = (state: CartState, action: Action) => {
+  let newState: CartState;
   switch (action.type) {
     case 'ADD_ITEM':
     case 'ADD_TO_CART': {
@@ -67,25 +69,29 @@ const cartReducer = (state: CartState, action: Action) => {
           totalWords: action.payload.totalWords,
           attachment: action.payload.attachment,
         };
-        return { ...state, items: updatedItems };
+        newState = { ...state, items: updatedItems };
+      } else {
+        newState = {
+          ...state,
+          items: [...state.items, action.payload],
+        };
       }
-      return {
-        ...state,
-        items: [...state.items, action.payload],
-      };
+      break;
     }
     case 'REMOVE_ITEM':
-      return {
+      newState = {
         ...state,
         items: state.items.filter(item => item.id !== action.payload),
       };
+      break;
     case 'CLEAR_CART':
-      return {
+      newState = {
         ...state,
         items: [],
       };
+      break;
     case 'UPDATE_ITEM_PAGES':
-      return {
+      newState = {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
@@ -93,8 +99,9 @@ const cartReducer = (state: CartState, action: Action) => {
             : item
         ),
       };
+      break;
     case 'UPDATE_ITEM_TITLE':
-      return {
+      newState = {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
@@ -102,8 +109,9 @@ const cartReducer = (state: CartState, action: Action) => {
             : item
         ),
       };
+      break;
     case 'UPDATE_ITEM_TOTAL_WORDS':
-      return {
+      newState = {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
@@ -111,8 +119,9 @@ const cartReducer = (state: CartState, action: Action) => {
             : item
         ),
       };
+      break;
     case 'UPDATE_ITEM_ATTACHMENT':
-      return {
+      newState = {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
@@ -120,13 +129,29 @@ const cartReducer = (state: CartState, action: Action) => {
             : item
         ),
       };
+      break;
+    case 'LOAD_CART':
+      newState = {
+        ...state,
+        items: action.payload,
+      };
+      break;
     default:
       return state;
   }
+  localStorage.setItem('cart', JSON.stringify(newState.items));
+  return newState;
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      dispatch({ type: 'LOAD_CART', payload: JSON.parse(savedCart) });
+    }
+  }, []);
 
   const removeFromCart = (id: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: id });
@@ -162,3 +187,4 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useCart = () => {
   return useContext(CartContext);
 };
+

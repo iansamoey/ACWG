@@ -32,6 +32,10 @@ export async function GET() {
               then: "paid",
               else: "unpaid"
             }
+          },
+          // Ensure totalWords is calculated if not present
+          totalWords: {
+            $ifNull: ["$totalWords", { $multiply: ["$pages", 250] }]
           }
         }
       },
@@ -54,6 +58,9 @@ export async function GET() {
           pages: 1,
           totalWords: 1
         }
+      },
+      {
+        $sort: { createdAt: -1 }
       }
     ]);
 
@@ -62,7 +69,10 @@ export async function GET() {
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return NextResponse.json({ message: "Failed to fetch orders" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to fetch orders" }, 
+      { status: 500 }
+    );
   }
 }
 
