@@ -6,8 +6,9 @@ import { CartProvider } from '../context/CartContext';
 import { UserProvider } from '../context/UserContext';
 import { Toaster } from '@/components/ui/toaster';
 import React from 'react';
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from 'next-auth/react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function RootLayout({
   children,
@@ -33,8 +34,8 @@ export default function RootLayout({
           </UserProvider>
         </SessionProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
 }
-
