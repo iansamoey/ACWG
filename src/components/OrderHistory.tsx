@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSupabaseStorage } from '@/lib/supabase-hooks';
 
 interface Attachment {
   filename: string;
@@ -36,6 +37,28 @@ interface OrdersResponse {
   totalPages: number;
   totalOrders: number;
 }
+
+const AttachmentList: React.FC<{ attachments: Attachment[] }> = ({ attachments }) => {
+  return (
+    <div className="flex flex-col space-y-1">
+      {attachments.map((attachment, index) => {
+        const { publicUrl, error } = useSupabaseStorage('attachments', attachment.filename);
+        return (
+          <div key={index}>
+            <Button
+              variant="link"
+              className="p-0 h-auto font-normal text-left"
+              onClick={() => publicUrl && window.open(publicUrl, '_blank')}
+            >
+              {attachment.filename}
+            </Button>
+            {error && <p className="text-red-500 text-sm">Error loading attachment</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 const OrderHistory: React.FC = () => {
   const { data: session, status } = useSession();
@@ -78,6 +101,39 @@ const OrderHistory: React.FC = () => {
     await fetchUserOrders(currentPage);
     setRefreshing(false);
   };
+
+  const memoizedOrders = useMemo(() => {
+    return ordersData?.orders.map((order) => (
+      <TableRow key={order._id}>
+        <TableCell>{order._id}</TableCell>
+        <TableCell>{order.serviceName}</TableCell>
+        <TableCell>{order.description}</TableCell>
+        <TableCell>{order.pages}</TableCell>
+        <TableCell>{order.totalWords}</TableCell>
+        <TableCell>${order.total.toFixed(2)}</TableCell>
+        <TableCell>
+          <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
+            {order.status}
+          </Badge>
+        </TableCell>
+        <TableCell>
+          <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'}>
+            {order.paymentStatus}
+          </Badge>
+        </TableCell>
+        <TableCell>{order.paypalOrderId}</TableCell>
+        <TableCell>{order.paypalTransactionId}</TableCell>
+        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+        <TableCell>
+          {order.attachments && order.attachments.length > 0 ? (
+            <AttachmentList attachments={order.attachments} />
+          ) : (
+            "No attachments"
+          )}
+        </TableCell>
+      </TableRow>
+    ));
+  }, [ordersData]);
 
   if (status === 'loading' || loading) {
     return <Spinner />;
@@ -132,47 +188,7 @@ const OrderHistory: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ordersData.orders.map((order) => (
-                  <TableRow key={order._id}>
-                    <TableCell>{order._id}</TableCell>
-                    <TableCell>{order.serviceName}</TableCell>
-                    <TableCell>{order.description}</TableCell>
-                    <TableCell>{order.pages}</TableCell>
-                    <TableCell>{order.totalWords}</TableCell>
-                    <TableCell>${order.total.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'}>
-                        {order.paymentStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{order.paypalOrderId}</TableCell>
-                    <TableCell>{order.paypalTransactionId}</TableCell>
-                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      {order.attachments && order.attachments.length > 0 ? (
-                        <div className="flex flex-col space-y-1">
-                          {order.attachments.map((attachment, index) => (
-                            <Button
-                              key={index}
-                              variant="link"
-                              className="p-0 h-auto font-normal text-left"
-                              onClick={() => window.open(attachment.path, '_blank')}
-                            >
-                              {attachment.filename}
-                            </Button>
-                          ))}
-                        </div>
-                      ) : (
-                        "No attachments"
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {memoizedOrders}
               </TableBody>
             </Table>
             {ordersData.totalPages > 1 && (

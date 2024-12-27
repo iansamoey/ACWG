@@ -21,6 +21,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
   const [title, setTitle] = useState('');
   const [totalWords, setTotalWords] = useState(250);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,21 +31,22 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
   };
 
   const handlePagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPages = Math.max(1, parseInt(e.target.value) || 1);
+    const newPages = Math.max(0, parseInt(e.target.value) || 0);
     setPages(newPages);
-    setTotalWords(Math.max(250, newPages * 250));
+    setTotalWords(newPages * 250);
   };
 
   const handleWordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newWords = Math.max(0, parseInt(e.target.value) || 0);
     setTotalWords(newWords);
-    setPages(Math.max(1, Math.ceil(newWords / 250)));
+    setPages(Math.ceil(newWords / 250));
   };
 
   const addToCart = async () => {
     let attachmentUrl = '';
 
     if (attachment) {
+      setIsUploading(true);
       const formData = new FormData();
       formData.append('file', attachment);
 
@@ -55,19 +57,23 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
         });
 
         if (!response.ok) {
-          throw new Error('File upload failed');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'File upload failed');
         }
 
         const data = await response.json();
         attachmentUrl = data.fileUrl;
-      } catch {
+      } catch (error) {
+        console.error('Upload error:', error);
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: 'Failed to upload file. Please try again.',
+          description: error instanceof Error ? error.message : 'Failed to upload file. Please try again.',
         });
+        setIsUploading(false);
         return;
       }
+      setIsUploading(false);
     }
 
     dispatch({
@@ -102,7 +108,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
           <InfoIcon className="h-4 w-4 text-blue-500" />
           <AlertTitle className="text-blue-700">Word Count Information</AlertTitle>
           <AlertDescription className="text-blue-600">
-            Each page contains approximately 250 words.Adjust either pages or total words to meet your requirements.For long descriptions please attach instructions.
+            Each page contains approximately 250 words. Adjust either pages or total words to meet your requirements. For long descriptions please attach instructions.
           </AlertDescription>
         </Alert>
         <div className="flex justify-between items-center">
@@ -111,7 +117,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
             <Input
               id={`pages-${id}`}
               type="number"
-              min="1"
+              min="0"
               value={pages}
               onChange={handlePagesChange}
               className="w-20 text-center"
@@ -154,9 +160,10 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
               onClick={() => document.getElementById(`attachment-${id}`)?.click()}
               variant="outline"
               className="w-full flex items-center justify-center"
+              disabled={isUploading}
             >
               <Upload className="mr-2 h-4 w-4" />
-              {attachment ? attachment.name : 'Choose file'}
+              {isUploading ? 'Uploading...' : attachment ? attachment.name : 'Choose file'}
             </Button>
           </div>
         </div>
@@ -165,9 +172,9 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
         <Button
           onClick={addToCart}
           className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          disabled={price * pages === 0 || pages === 0 || totalWords === 0}
+          disabled={pages === 0 || totalWords === 0 || isUploading}
         >
-          Add to Cart
+          {isUploading ? 'Uploading...' : 'Add to Cart'}
         </Button>
       </CardFooter>
     </Card>

@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react"
-import { Spinner } from "@/components/ui/spinner"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { AlertCircle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import React from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Spinner } from "@/components/ui/spinner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { useSupabaseStorage } from '@/lib/supabase-hooks';
 
 interface Attachment {
   filename: string;
@@ -22,21 +22,21 @@ interface UserDetails {
 }
 
 interface Order {
-  _id: string
-  userId: string
-  serviceName: string
-  description: string
-  price: number
-  total: number
-  status: string
-  paymentStatus: string
-  createdAt: Date
-  attachments: Attachment[]
-  userDetails: UserDetails
-  paypalOrderId: string
-  paypalTransactionId: string
-  pages: number
-  totalWords: number
+  _id: string;
+  userId: string;
+  serviceName: string;
+  description: string;
+  price: number;
+  total: number;
+  status: string;
+  paymentStatus: string;
+  createdAt: Date;
+  attachments: Attachment[];
+  userDetails: UserDetails;
+  paypalOrderId: string;
+  paypalTransactionId: string;
+  pages: number;
+  totalWords: number;
 }
 
 const statusColors = {
@@ -44,42 +44,68 @@ const statusColors = {
   "in-progress": "bg-blue-200 text-blue-800",
   completed: "bg-green-200 text-green-800",
   cancelled: "bg-red-200 text-red-800",
-}
+};
 
 const paymentStatusColors: { [key: string]: string } = {
   paid: "bg-green-200 text-green-800",
   unpaid: "bg-yellow-200 text-yellow-800",
 };
 
+const AttachmentList: React.FC<{ attachments: Attachment[] }> = ({ attachments }) => {
+  return (
+    <div className="flex flex-col space-y-1">
+      {attachments.map((attachment, index) => {
+        const { publicUrl, error } = useSupabaseStorage('attachments', attachment.filename);
+        return (
+          <div key={index}>
+            {publicUrl ? (
+              <Button
+                variant="link"
+                className="p-0 h-auto font-normal text-left"
+                onClick={() => window.open(publicUrl, '_blank')}
+              >
+                {attachment.filename}
+              </Button>
+            ) : (
+              <span>{attachment.filename}</span>
+            )}
+            {error && <p className="text-red-500 text-sm">Error: {error.message}</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function ViewOrders() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const response = await fetch("/api/orders");
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+      const ordersData: Order[] = await response.json();
+      setOrders(ordersData);
+    } catch (error) {
+      console.error("Error in fetchOrders:", error);
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch("/api/orders")
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders")
-        }
-        const ordersData: Order[] = await response.json()
-        setOrders(ordersData)
-      } catch (error) {
-        console.error("Error in fetchOrders:", error)
-        setError(error instanceof Error ? error.message : "An unknown error occurred")
-      } finally {
-        setLoading(false)
-      }
-    }
+    fetchOrders();
+  }, [fetchOrders]);
 
-    fetchOrders()
-  }, [])
-
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    setUpdatingStatus(orderId)
+  const updateOrderStatus = useCallback(async (orderId: string, newStatus: string) => {
+    setUpdatingStatus(orderId);
     try {
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
@@ -87,34 +113,36 @@ export default function ViewOrders() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
-      })
+      });
       if (!response.ok) {
-        throw new Error("Failed to update status")
+        throw new Error("Failed to update status");
       }
 
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === orderId ? { ...order, status: newStatus } : order
         )
-      )
+      );
     } catch (error) {
-      console.error("Error updating status:", error)
+      console.error("Error updating status:", error);
     } finally {
-      setUpdatingStatus(null)
+      setUpdatingStatus(null);
     }
-  }
+  }, []);
 
-  const filteredOrders =
+  const filteredOrders = useMemo(() => 
     statusFilter === "all"
       ? orders
-      : orders.filter((order) => order.status === statusFilter)
+      : orders.filter((order) => order.status === statusFilter),
+    [orders, statusFilter]
+  );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Spinner className="w-8 h-8" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -126,7 +154,7 @@ export default function ViewOrders() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
-    )
+    );
   }
 
   return (
@@ -199,18 +227,7 @@ export default function ViewOrders() {
                   <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
                   <TableCell>
                     {order.attachments && order.attachments.length > 0 ? (
-                      <div className="flex flex-col space-y-1">
-                        {order.attachments.map((attachment, index) => (
-                          <Button
-                            key={index}
-                            variant="link"
-                            className="p-0 h-auto font-normal text-left"
-                            onClick={() => window.open(attachment.path, '_blank')}
-                          >
-                            {attachment.filename}
-                          </Button>
-                        ))}
-                      </div>
+                      <AttachmentList attachments={order.attachments} />
                     ) : (
                       "No attachments"
                     )}
@@ -239,6 +256,6 @@ export default function ViewOrders() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
