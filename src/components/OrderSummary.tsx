@@ -123,51 +123,55 @@ const OrderSummary: React.FC = () => {
 
   if (orderConfirmed) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Order Confirmation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-lg mb-4">Thank you for your order!</p>
-          <p className="mb-2">Your order ID is: <span className="font-bold">{orderId}</span></p>
-          <p className="mb-4">We&apos;ve received your order and it&apos;s currently pending. We&apos;ll process it shortly and send you an email with further details.</p>
-          <Button onClick={() => router.push('/')}>Return to Home</Button>
-        </CardContent>
-      </Card>
+      <div className="relative z-0">
+        <Card className="w-full max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle>Order Confirmation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg mb-4">Thank you for your order!</p>
+            <p className="mb-2">Your order ID is: <span className="font-bold">{orderId}</span></p>
+            <p className="mb-4">We&apos;ve received your order and it&apos;s currently pending. We&apos;ll process it shortly and send you an email with further details.</p>
+            <Button onClick={() => router.push('/')}>Return to Home</Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Order Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-2 mb-4">
-          {cartState.items.map((item) => (
-            <li key={item.id} className="flex justify-between border-b pb-2">
-              <span>{item.name} (x{item.quantity})</span>
-              <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="text-xl font-bold mb-6 text-right">
-          Total: ${totalPrice.toFixed(2)}
-        </div>
-        {isProcessing ? (
-          <div className="flex justify-center items-center">
-            <Spinner className="mr-2" />
-            <span>Processing payment...</span>
+    <div className="relative z-0">
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Order Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 mb-4">
+            {cartState.items.map((item) => (
+              <li key={item.id} className="flex justify-between border-b pb-2">
+                <span>{item.name} (x{item.quantity})</span>
+                <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="text-xl font-bold mb-6 text-right">
+            Total: ${totalPrice.toFixed(2)}
           </div>
-        ) : (
-          <PayPalButtons
-            createOrder={createOrder}
-            onApprove={onApprove}
-            style={{ layout: "vertical" }}
-          />
-        )}
-      </CardContent>
-    </Card>
+          {isProcessing ? (
+            <div className="flex justify-center items-center">
+              <Spinner className="mr-2" />
+              <span>Processing payment...</span>
+            </div>
+          ) : (
+            <PayPalButtons
+              createOrder={createOrder}
+              onApprove={onApprove}
+              style={{ layout: "vertical" }}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

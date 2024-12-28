@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ children, className, isSidebar
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64">
+        <SheetContent side="left" className="p-0 w-64 z-50">
           <DialogTitle asChild>
             <VisuallyHidden>Sidebar Navigation</VisuallyHidden>
           </DialogTitle>
@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ children, className, isSidebar
           </div>
         </SheetContent>
       </Sheet>
-      <div className={`w-64 h-full bg-gray-800 text-white fixed top-0 bottom-0 left-0 transition-transform duration-300 ease-in-out transform md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${className}`}>
+      <div className={`w-64 h-full bg-gray-800 text-white fixed top-0 bottom-0 left-0 transition-transform duration-300 ease-in-out transform md:relative md:translate-x-0 z-40 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${className}`}>
         {children}
       </div>
     </>
@@ -231,3 +231,4 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     </Sidebar>
   );
 };
+
