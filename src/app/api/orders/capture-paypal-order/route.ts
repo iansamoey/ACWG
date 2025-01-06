@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
-import fetch from "node-fetch";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+
+const PAYPAL_BASE_URL = "https://api.paypal.com";
 
 interface OrderItem {
   id: string;
@@ -36,6 +37,10 @@ export async function POST(req: Request) {
       throw new Error("User ID is required");
     }
 
+    if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      throw new Error("PayPal credentials are not configured");
+    }
+
     const accessToken = await getPayPalAccessToken();
     const captureData = await capturePayPalOrder(accessToken, orderId);
 
@@ -57,9 +62,7 @@ export async function POST(req: Request) {
         status: "pending" as const,
         paymentStatus: "paid" as const,
         paypalOrderId: orderId,
-        paypalTransactionId:
-          (captureData as CaptureData).purchase_units[0].payments.captures[0]
-            .id,
+        paypalTransactionId: (captureData as CaptureData).purchase_units[0].payments.captures[0].id,
         serviceName: (items[0] as OrderItem).name,
         description: `Order for ${(items as OrderItem[])
           .map((item) => item.name)
@@ -123,16 +126,14 @@ async function getPayPalAccessToken(): Promise<string> {
     `${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
   ).toString("base64");
 
-  const response = await fetch(
-    `${process.env.PAYPAL_SERVER_URL}/v1/oauth2/token`,
-    {
-      method: "POST",
-      body: "grant_type=client_credentials",
-      headers: {
-        Authorization: `Basic ${auth}`,
-      },
-    }
-  );
+  const response = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
+    method: "POST",
+    body: "grant_type=client_credentials",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  });
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -140,7 +141,7 @@ async function getPayPalAccessToken(): Promise<string> {
     throw new Error(`PayPal API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = (await response.json()) as { access_token: string };
+  const data = await response.json() as { access_token: string };
   return data.access_token;
 }
 
@@ -149,7 +150,7 @@ async function capturePayPalOrder(
   orderId: string
 ): Promise<unknown> {
   const response = await fetch(
-    `${process.env.PAYPAL_SERVER_URL}/v2/checkout/orders/${orderId}/capture`,
+    `${PAYPAL_BASE_URL}/v2/checkout/orders/${orderId}/capture`,
     {
       method: "POST",
       headers: {
@@ -162,10 +163,9 @@ async function capturePayPalOrder(
   if (!response.ok) {
     const errorData = await response.json();
     console.error("PayPal API Error (Capture):", errorData);
-    throw new Error(
-      `PayPal API error: ${response.status} ${response.statusText}`
-    );
+    throw new Error(`PayPal API error: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
 }
+
