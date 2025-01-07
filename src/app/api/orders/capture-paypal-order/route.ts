@@ -6,16 +6,6 @@ import { sendOrderConfirmationEmail } from "@/lib/email";
 
 const PAYPAL_BASE_URL = "https://api.paypal.com";
 
-interface PayPalError {
-  name: string;
-  details: Array<{
-    issue: string;
-    description: string;
-  }>;
-  message: string;
-  debug_id: string;
-}
-
 interface OrderItem {
   id: string;
   name: string;
@@ -44,118 +34,87 @@ export async function POST(req: Request) {
     const { orderId, userId, items, total } = await req.json();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
+      throw new Error("User ID is required");
     }
 
     if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
-      return NextResponse.json(
-        { error: "PayPal configuration is missing" },
-        { status: 500 }
-      );
+      throw new Error("PayPal credentials are not configured");
     }
 
     const accessToken = await getPayPalAccessToken();
-    
-    try {
-      const captureData = await capturePayPalOrder(accessToken, orderId);
+    const captureData = await capturePayPalOrder(accessToken, orderId);
 
-      if ((captureData as CaptureData).status === "COMPLETED") {
-        const totalPages = items.reduce(
-          (sum: number, item: OrderItem) => sum + item.pages * item.quantity,
-          0
-        );
-        const totalWords = items.reduce(
-          (sum: number, item: OrderItem) =>
-            sum + (item.totalWords || item.pages * 250) * item.quantity,
-          0
-        );
+    if ((captureData as CaptureData).status === "COMPLETED") {
+      const totalPages = items.reduce(
+        (sum: number, item: OrderItem) => sum + item.pages * item.quantity,
+        0
+      );
+      const totalWords = items.reduce(
+        (sum: number, item: OrderItem) =>
+          sum + (item.totalWords || item.pages * 250) * item.quantity,
+        0
+      );
 
-        const orderData = {
-          userId,
-          items,
-          total,
-          status: "pending" as const,
-          paymentStatus: "paid" as const,
-          paypalOrderId: orderId,
-          paypalTransactionId: (captureData as CaptureData).purchase_units[0].payments.captures[0].id,
-          serviceName: (items[0] as OrderItem).name,
-          description: `Order for ${(items as OrderItem[])
-            .map((item) => item.name)
-            .join(", ")}`,
-          pages: totalPages,
-          totalWords: totalWords,
-          attachments: items.flatMap((item: OrderItem) =>
-            item.attachment
-              ? [
-                  {
-                    filename: item.attachment.split("/").pop() || "",
-                    path: item.attachment,
-                  },
-                ]
-              : []
-          ),
-        };
+      const orderData = {
+        userId,
+        items,
+        total,
+        status: "pending" as const,
+        paymentStatus: "paid" as const,
+        paypalOrderId: orderId,
+        paypalTransactionId: (captureData as CaptureData).purchase_units[0].payments.captures[0].id,
+        serviceName: (items[0] as OrderItem).name,
+        description: `Order for ${(items as OrderItem[])
+          .map((item) => item.name)
+          .join(", ")}`,
+        pages: totalPages,
+        totalWords: totalWords,
+        attachments: items.flatMap((item: OrderItem) =>
+          item.attachment
+            ? [
+                {
+                  filename: item.attachment.split("/").pop() || "",
+                  path: item.attachment,
+                },
+              ]
+            : []
+        ),
+      };
 
-        const order = await Order.create(orderData);
+      const order = await Order.create(orderData);
 
-        if (!order || !order._id) {
-          throw new Error("Failed to create order in database");
-        }
-
-        const user = await User.findById(userId);
-        if (user) {
-          await sendOrderConfirmationEmail(
-            user.email,
-            user.name,
-            order._id.toString(),
-            items
-          );
-        }
-
-        return NextResponse.json({ success: true, order });
-      } else {
-        return NextResponse.json(
-          {
-            error: "Payment not completed",
-            details: captureData,
-          },
-          { status: 400 }
-        );
-      }
-    } catch (captureError: any) {
-      // Handle specific PayPal errors
-      if (captureError.name === "UNPROCESSABLE_ENTITY") {
-        const paypalError = captureError as PayPalError;
-        const detail = paypalError.details[0];
-        
-        if (detail.issue === "INSTRUMENT_DECLINED") {
-          return NextResponse.json(
-            {
-              error: "Payment method declined",
-              message: "Your payment method was declined. Please try a different payment method.",
-              details: detail.description,
-              debug_id: paypalError.debug_id
-            },
-            { status: 422 }
-          );
-        }
+      if (!order || !order._id) {
+        throw new Error("Failed to create order");
       }
 
-      throw captureError; // Re-throw other errors to be caught by outer try-catch
+      // Send order confirmation email
+      const user = await User.findById(userId);
+      if (user) {
+        await sendOrderConfirmationEmail(
+          user.email,
+          user.name,
+          order._id.toString(),
+          items
+        );
+      }
+
+      return NextResponse.json({ success: true, order });
+    } else {
+      console.error("PayPal capture failed:", captureData);
+      return NextResponse.json(
+        {
+          error: "PayPal capture was not completed",
+          details: captureData,
+        },
+        { status: 400 }
+      );
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error capturing PayPal order:", error);
-    
-    // Return a user-friendly error message
     return NextResponse.json(
       {
-        error: "Payment processing failed",
-        message: "There was an error processing your payment. Please try again.",
+        error: "Failed to capture PayPal order",
         details: error instanceof Error ? error.message : String(error),
-        debug_id: error.debug_id
       },
       { status: 500 }
     );
@@ -201,16 +160,12 @@ async function capturePayPalOrder(
     }
   );
 
-  const data = await response.json();
-
   if (!response.ok) {
-    const error = new Error(`PayPal API error: ${response.status} ${response.statusText}`) as any;
-    error.name = data.name;
-    error.details = data.details;
-    error.debug_id = data.debug_id;
-    throw error;
+    const errorData = await response.json();
+    console.error("PayPal API Error (Capture):", errorData);
+    throw new Error(`PayPal API error: ${response.status} ${response.statusText}`);
   }
 
-  return data;
+  return response.json();
 }
 
