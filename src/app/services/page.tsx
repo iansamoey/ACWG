@@ -1,13 +1,20 @@
-"use client";
+'use client'
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Service } from '@/types';
 import ServiceItem from '@/components/ServiceItem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useCart } from '@/context/CartContext';
 
-export default function Services() {
+interface ServicesProps {
+  setActiveTab: (tab: string) => void;
+}
+
+export default function Services({ setActiveTab }: ServicesProps) {
   const [services, setServices] = useState<Service[]>([]);
+  const { state: cartState } = useCart();
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -26,6 +33,14 @@ export default function Services() {
     fetchServices();
   }, []);
 
+  const handleViewCart = () => {
+    setActiveTab('cart-status');
+  };
+
+  const handleAddToCart = () => {
+    setActiveTab('cart-status');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -42,6 +57,12 @@ export default function Services() {
           </p>
         </motion.div>
 
+        <div className="flex justify-end mb-4">
+          <Button onClick={handleViewCart} variant="outline">
+            View Cart ({cartState.items.length})
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
             <motion.div
@@ -55,24 +76,25 @@ export default function Services() {
                 name={service.name}
                 description={service.description}
                 price={service.price}
+                onAddToCart={handleAddToCart}
               />
             </motion.div>
           ))}
         </div>
 
         {services.length === 0 && (
-  <Card className="mt-8">
-    <CardHeader>
-      <CardTitle>No Services Available</CardTitle>
-      <CardDescription>Please check back later for our updated service offerings.</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <p className="text-gray-600">We are working on adding new services. Stay tuned for updates!</p>
-    </CardContent>
-  </Card>
-)}
-
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>No Services Available</CardTitle>
+              <CardDescription>Please check back later for our updated service offerings.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">We are working on adding new services. Stay tuned for updates!</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
+

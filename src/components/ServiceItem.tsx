@@ -13,9 +13,10 @@ interface ServiceItemProps {
   name: string;
   description: string;
   price: number;
+  onAddToCart: () => void;
 }
 
-const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price }) => {
+const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price, onAddToCart }) => {
   const { dispatch } = useCart();
   const [pages, setPages] = useState(1);
   const [title, setTitle] = useState('');
@@ -95,6 +96,8 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ id, name, description, price 
       description: `${name} has been added to your cart.`,
       duration: 3000,
     });
+
+    onAddToCart();
   };
 
   return (

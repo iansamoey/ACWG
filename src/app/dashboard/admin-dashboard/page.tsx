@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import React from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import ManageUsers from "@/app/dashboard/manage-users/page";
 import ManageContent from "@/app/dashboard/manage-content/page";
 import ViewOrders from "@/app/dashboard/view-orders/page";
@@ -14,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from 'lucide-react';
 import { useCart } from "@/context/CartContext";
 import { Session } from "next-auth";
+import AdminMessageSystem from "@/components/AdminChatSystem";
 
 function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState("ManageUsers");
@@ -22,12 +22,17 @@ function AdminDashboard() {
   const [userName, setUserName] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { state: cartState } = useCart();
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (session?.user) {
       setUserName(session.user.name || session.user.email || "Admin");
     }
   }, [session]);
+
+  const handleUnreadMessagesChange = useCallback((count: number) => {
+    setUnreadMessages((prevCount) => prevCount + count);
+  }, []);
 
   const renderContent = () => {
     switch (currentPage) {
@@ -39,6 +44,8 @@ function AdminDashboard() {
         return <ViewOrders />;
       case "CreateAdmin":
         return <CreateAdmin />;
+      case "Messages":
+        return <AdminMessageSystem onUnreadMessagesChange={handleUnreadMessagesChange} />;
       default:
         return null;
     }
@@ -69,6 +76,7 @@ function AdminDashboard() {
         onLogout={handleSignOut}
         session={session as Session | null}
         closeSidebar={closeSidebar}
+        unreadMessages={unreadMessages}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm p-4 flex items-center">

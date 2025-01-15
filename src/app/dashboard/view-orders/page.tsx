@@ -10,6 +10,7 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useSupabaseStorage } from '@/lib/supabase-hooks';
+import OrderDetails from '@/components/OrderDetails';
 
 interface Attachment {
   filename: string;
@@ -30,7 +31,7 @@ interface Order {
   total: number;
   status: string;
   paymentStatus: string;
-  createdAt: Date;
+  createdAt: string; // Changed from Date to string
   attachments: Attachment[];
   userDetails: UserDetails;
   paypalOrderId: string;
@@ -83,6 +84,7 @@ export default function ViewOrders() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -136,6 +138,13 @@ export default function ViewOrders() {
       : orders.filter((order) => order.status === statusFilter),
     [orders, statusFilter]
   );
+
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder({
+      ...order,
+      createdAt: new Date(order.createdAt).toISOString()
+    });
+  };
 
   if (loading) {
     return (
@@ -202,7 +211,7 @@ export default function ViewOrders() {
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order._id}>
+                <TableRow key={order._id} onClick={() => handleOrderClick(order)} className="cursor-pointer hover:bg-gray-100">
                   <TableCell className="font-mono">{order._id}</TableCell>
                   <TableCell>{order.userDetails?.username || "N/A"}</TableCell>
                   <TableCell>{order.userDetails?.email || "N/A"}</TableCell>
@@ -224,7 +233,7 @@ export default function ViewOrders() {
                   </TableCell>
                   <TableCell>{order.paypalOrderId || "N/A"}</TableCell>
                   <TableCell>{order.paypalTransactionId || "N/A"}</TableCell>
-                  <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell> {/* Updated to use toLocaleString() */}
                   <TableCell>
                     {order.attachments && order.attachments.length > 0 ? (
                       <AttachmentList attachments={order.attachments} />
@@ -255,6 +264,13 @@ export default function ViewOrders() {
           </Table>
         </div>
       </CardContent>
+      {selectedOrder && (
+        <OrderDetails
+          order={selectedOrder}
+          isOpen={!!selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </Card>
   );
 }

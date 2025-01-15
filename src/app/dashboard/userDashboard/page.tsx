@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import OrderSummary from "@/components/OrderSummary";
 import CartStatus from "@/components/CartStatus";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from 'lucide-react';
 import { useCart } from "@/context/CartContext";
 import { useRouter } from 'next/navigation';
+import MessageSystem from "@/components/MessageSystem";
 
 const UserDashboard: React.FC = () => {
   const { data: session } = useSession();
@@ -22,6 +23,7 @@ const UserDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { state: cartState } = useCart();
   const router = useRouter();
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (session?.user) {
@@ -29,20 +31,26 @@ const UserDashboard: React.FC = () => {
     }
   }, [session]);
 
+  const handleUnreadMessagesChange = useCallback((count: number) => {
+    setUnreadMessages(count);
+  }, []);
+
   const renderContent = () => {
     switch (activeTab) {
       case "order-summary":
         return <OrderSummary />;
       case "cart-status":
-        return <CartStatus />;
+        return <CartStatus setActiveTab={setActiveTab} />;
       case "services":
-        return <Services />;
+        return <Services setActiveTab={setActiveTab} />;
       case "order-form":
         return <OrderForm />;
       case "order-history":
         return <OrderHistory />;
       case "profile-update":
         return <ProfileUpdate />;
+      case "Messages":
+        return <MessageSystem isAdmin={false} onUnreadMessagesChange={handleUnreadMessagesChange} />;
       default:
         return null;
     }
@@ -73,6 +81,7 @@ const UserDashboard: React.FC = () => {
         onLogout={handleSignOut}
         session={session}
         closeSidebar={closeSidebar}
+        unreadMessages={unreadMessages}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm p-4 flex items-center">

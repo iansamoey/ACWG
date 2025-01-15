@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSupabaseStorage } from '@/lib/supabase-hooks';
+import OrderDetails from './OrderDetails';
 
 interface Attachment {
   filename: string;
@@ -67,6 +68,7 @@ const OrderHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const fetchUserOrders = useCallback(async (page: number) => {
     if (status !== 'authenticated' || !session?.user?.id) {
@@ -102,9 +104,13 @@ const OrderHistory: React.FC = () => {
     setRefreshing(false);
   };
 
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder(order);
+  };
+
   const memoizedOrders = useMemo(() => {
     return ordersData?.orders.map((order) => (
-      <TableRow key={order._id}>
+      <TableRow key={order._id} onClick={() => handleOrderClick(order)} className="cursor-pointer hover:bg-gray-100">
         <TableCell>{order._id}</TableCell>
         <TableCell>{order.serviceName}</TableCell>
         <TableCell>{order.description}</TableCell>
@@ -211,6 +217,13 @@ const OrderHistory: React.FC = () => {
           </>
         )}
       </CardContent>
+      {selectedOrder && (
+        <OrderDetails
+          order={selectedOrder}
+          isOpen={!!selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </Card>
   );
 };

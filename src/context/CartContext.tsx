@@ -57,25 +57,13 @@ const cartReducer = (state: CartState, action: Action) => {
   switch (action.type) {
     case 'ADD_ITEM':
     case 'ADD_TO_CART': {
-      const existingItemIndex = state.items.findIndex(item => item.id === action.payload.id);
-      if (existingItemIndex > -1) {
-        const updatedItems = [...state.items];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + 1,
-          pages: action.payload.pages,
-          price: action.payload.price,
-          title: action.payload.title,
-          totalWords: action.payload.totalWords,
-          attachment: action.payload.attachment,
-        };
-        newState = { ...state, items: updatedItems };
-      } else {
-        newState = {
-          ...state,
-          items: [...state.items, action.payload],
-        };
-      }
+      // Generate a unique ID for each item added to the cart
+      const newItemId = `${action.payload.id}-${Date.now()}`;
+      const newItem = { ...action.payload, id: newItemId };
+      newState = {
+        ...state,
+        items: [...state.items, newItem],
+      };
       break;
     }
     case 'REMOVE_ITEM':

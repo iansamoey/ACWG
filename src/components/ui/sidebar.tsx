@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { Menu, Users, FileText, LogOut, ShoppingCart } from 'lucide-react';
+import { Menu, Users, FileText, LogOut, ShoppingCart, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -40,6 +40,16 @@ interface SidebarMenuButtonProps {
   asChild?: boolean;
   onClick?: () => void;
   className?: string;
+}
+
+interface DashboardSidebarProps {
+  setActiveTab: (tab: string) => void;
+  onLogout: () => void;
+  session: Session | null;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
+  cartItems: number;
+  unreadMessages: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ children, className, isSidebarOpen, setIsSidebarOpen }) => {
@@ -105,22 +115,14 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
   <div className="flex">{children}</div>
 );
 
-interface DashboardSidebarProps {
-  setActiveTab: (tab: string) => void;
-  onLogout: () => void;
-  session: Session | null;
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (isOpen: boolean) => void;
-  cartItems: number;
-}
-
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ 
   setActiveTab, 
   onLogout, 
   session,
   isSidebarOpen,
   setIsSidebarOpen,
-  cartItems
+  cartItems,
+  unreadMessages
 }) => {
 
   const handleLogout = () => {
@@ -164,6 +166,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <SidebarMenuButton onClick={() => handleSetActiveTab('CreateAdmin')}>
                   <Users className="mr-2 h-4 w-4" />
                   <span>Create Admin</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => handleSetActiveTab('Messages')}>
+                  <div className="flex items-center w-full">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <span>Messages</span>
+                    {unreadMessages > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className={cn(
+                          'ml-auto',
+                          unreadMessages > 99 ? 'w-7' : 'w-5',
+                        )}
+                      >
+                        {unreadMessages > 99 ? '99+' : unreadMessages}
+                      </Badge>
+                    )}
+                  </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </>
@@ -211,6 +232,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => handleSetActiveTab('profile-update')}>
                   Profile Management
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => handleSetActiveTab('Messages')}>
+                  <div className="flex items-center w-full">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <span>Messages</span>
+                    {unreadMessages > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className={cn(
+                          'ml-auto',
+                          unreadMessages > 99 ? 'w-7' : 'w-5',
+                        )}
+                      >
+                        {unreadMessages > 99 ? '99+' : unreadMessages}
+                      </Badge>
+                    )}
+                  </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </>
