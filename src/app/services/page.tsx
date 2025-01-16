@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -7,14 +7,12 @@ import ServiceItem from '@/components/ServiceItem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from '@/context/CartContext';
+import CartStatus from '@/components/CartStatus';
 
-interface ServicesProps {
-  setActiveTab: (tab: string) => void;
-}
-
-export default function Services({ setActiveTab }: ServicesProps) {
+export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
   const { state: cartState } = useCart();
+  const [activeTab, setActiveTab] = useState('services');
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -41,6 +39,33 @@ export default function Services({ setActiveTab }: ServicesProps) {
     setActiveTab('cart-status');
   };
 
+  const renderActiveTabContent = () => {
+    if (activeTab === 'cart-status') {
+      return <CartStatus setActiveTab={setActiveTab} onBack={() => setActiveTab('services')} />;
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {services.map((service) => (
+          <motion.div
+            key={service._id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ServiceItem
+              id={service._id}
+              name={service.name}
+              description={service.description}
+              price={service.price}
+              onAddToCart={handleAddToCart}
+            />
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -57,32 +82,17 @@ export default function Services({ setActiveTab }: ServicesProps) {
           </p>
         </motion.div>
 
-        <div className="flex justify-end mb-4">
-          <Button onClick={handleViewCart} variant="outline">
-            View Cart ({cartState.items.length})
-          </Button>
-        </div>
+        {activeTab === 'services' && (
+          <div className="flex justify-end mb-4">
+            <Button onClick={handleViewCart} variant="outline">
+              View Cart ({cartState.items.length})
+            </Button>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => (
-            <motion.div
-              key={service._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ServiceItem
-                id={service._id}
-                name={service.name}
-                description={service.description}
-                price={service.price}
-                onAddToCart={handleAddToCart}
-              />
-            </motion.div>
-          ))}
-        </div>
+        {renderActiveTabContent()}
 
-        {services.length === 0 && (
+        {services.length === 0 && activeTab === 'services' && (
           <Card className="mt-8">
             <CardHeader>
               <CardTitle>No Services Available</CardTitle>

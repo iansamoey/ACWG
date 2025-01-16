@@ -31,7 +31,7 @@ interface Order {
   total: number;
   status: string;
   paymentStatus: string;
-  createdAt: string; // Changed from Date to string
+  createdAt: string;
   attachments: Attachment[];
   userDetails: UserDetails;
   paypalOrderId: string;
@@ -222,18 +222,14 @@ export default function ViewOrders() {
                   <TableCell>${order.price?.toFixed(2)}</TableCell>
                   <TableCell>${order.total?.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge className={statusColors[order.status as keyof typeof statusColors]}>
-                      {order.status}
-                    </Badge>
+                    <Badge className={statusColors[order.status as keyof typeof statusColors]}>{order.status}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={paymentStatusColors[order.paymentStatus] || paymentStatusColors.unpaid}>
-                      {order.paymentStatus}
-                    </Badge>
+                    <Badge className={paymentStatusColors[order.paymentStatus] || paymentStatusColors.unpaid}>{order.paymentStatus}</Badge>
                   </TableCell>
                   <TableCell>{order.paypalOrderId || "N/A"}</TableCell>
                   <TableCell>{order.paypalTransactionId || "N/A"}</TableCell>
-                  <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell> {/* Updated to use toLocaleString() */}
+                  <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
                   <TableCell>
                     {order.attachments && order.attachments.length > 0 ? (
                       <AttachmentList attachments={order.attachments} />

@@ -49,7 +49,6 @@ interface DashboardSidebarProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (isOpen: boolean) => void;
   cartItems: number;
-  unreadMessages: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ children, className, isSidebarOpen, setIsSidebarOpen }) => {
@@ -121,8 +120,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   session,
   isSidebarOpen,
   setIsSidebarOpen,
-  cartItems,
-  unreadMessages
+  cartItems
 }) => {
 
   const handleLogout = () => {
@@ -170,21 +168,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => handleSetActiveTab('Messages')}>
-                  <div className="flex items-center w-full">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Messages</span>
-                    {unreadMessages > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className={cn(
-                          'ml-auto',
-                          unreadMessages > 99 ? 'w-7' : 'w-5',
-                        )}
-                      >
-                        {unreadMessages > 99 ? '99+' : unreadMessages}
-                      </Badge>
-                    )}
-                  </div>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  <span>Messages</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </>
@@ -236,21 +221,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => handleSetActiveTab('Messages')}>
-                  <div className="flex items-center w-full">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Messages</span>
-                    {unreadMessages > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className={cn(
-                          'ml-auto',
-                          unreadMessages > 99 ? 'w-7' : 'w-5',
-                        )}
-                      >
-                        {unreadMessages > 99 ? '99+' : unreadMessages}
-                      </Badge>
-                    )}
-                  </div>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  <span>Messages</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </>

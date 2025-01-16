@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -26,7 +26,7 @@ const DashboardPage: React.FC = () => {
     const renderContent = () => {
         switch (activeTab) {
             case 'cart-status':
-                return <CartStatus />;
+                return <CartStatus setActiveTab={setActiveTab} />;
             case 'order-summary':
                 return <OrderSummary />;
             case 'services':

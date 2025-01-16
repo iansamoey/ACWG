@@ -12,7 +12,6 @@ interface SidebarProps {
   onLogout: () => void;
   session: Session | null;
   closeSidebar: () => void;
-  unreadMessages: number;
 }
 
 export default function Sidebar({ 
@@ -22,8 +21,7 @@ export default function Sidebar({
   cartItems, 
   onLogout, 
   session,
-  closeSidebar,
-  unreadMessages
+  closeSidebar
 }: SidebarProps) {
   const handleSetActiveTab = (tab: string) => {
     setActiveTab(tab);
@@ -38,7 +36,6 @@ export default function Sidebar({
       cartItems={cartItems}
       onLogout={onLogout}
       session={session}
-      unreadMessages={unreadMessages}
     />
   );
 }

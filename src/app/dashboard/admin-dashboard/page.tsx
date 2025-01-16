@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import ManageUsers from "@/app/dashboard/manage-users/page";
 import ManageContent from "@/app/dashboard/manage-content/page";
 import ViewOrders from "@/app/dashboard/view-orders/page";
@@ -22,17 +22,12 @@ function AdminDashboard() {
   const [userName, setUserName] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { state: cartState } = useCart();
-  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (session?.user) {
       setUserName(session.user.name || session.user.email || "Admin");
     }
   }, [session]);
-
-  const handleUnreadMessagesChange = useCallback((count: number) => {
-    setUnreadMessages((prevCount) => prevCount + count);
-  }, []);
 
   const renderContent = () => {
     switch (currentPage) {
@@ -45,7 +40,7 @@ function AdminDashboard() {
       case "CreateAdmin":
         return <CreateAdmin />;
       case "Messages":
-        return <AdminMessageSystem onUnreadMessagesChange={handleUnreadMessagesChange} />;
+        return <AdminMessageSystem onUnreadMessagesChange={() => {}} />;
       default:
         return null;
     }
@@ -76,7 +71,6 @@ function AdminDashboard() {
         onLogout={handleSignOut}
         session={session as Session | null}
         closeSidebar={closeSidebar}
-        unreadMessages={unreadMessages}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm p-4 flex items-center">

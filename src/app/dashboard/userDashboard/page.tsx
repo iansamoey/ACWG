@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import OrderSummary from "@/components/OrderSummary";
 import CartStatus from "@/components/CartStatus";
@@ -23,17 +23,12 @@ const UserDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { state: cartState } = useCart();
   const router = useRouter();
-  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (session?.user) {
       setUserName(session.user.name || session.user.email || "User");
     }
   }, [session]);
-
-  const handleUnreadMessagesChange = useCallback((count: number) => {
-    setUnreadMessages(count);
-  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -42,7 +37,7 @@ const UserDashboard: React.FC = () => {
       case "cart-status":
         return <CartStatus setActiveTab={setActiveTab} />;
       case "services":
-        return <Services setActiveTab={setActiveTab} />;
+        return <Services />;
       case "order-form":
         return <OrderForm />;
       case "order-history":
@@ -50,7 +45,7 @@ const UserDashboard: React.FC = () => {
       case "profile-update":
         return <ProfileUpdate />;
       case "Messages":
-        return <MessageSystem isAdmin={false} onUnreadMessagesChange={handleUnreadMessagesChange} />;
+        return <MessageSystem isAdmin={false} onUnreadMessagesChange={() => {}} />;
       default:
         return null;
     }
@@ -81,7 +76,6 @@ const UserDashboard: React.FC = () => {
         onLogout={handleSignOut}
         session={session}
         closeSidebar={closeSidebar}
-        unreadMessages={unreadMessages}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm p-4 flex items-center">
