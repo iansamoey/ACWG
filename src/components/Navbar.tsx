@@ -27,11 +27,6 @@ const Navbar: React.FC = () => {
           </Link>
           {session ? (
             <>
-              <Link href="/dashboard" passHref>
-                <button className="text-white hover:bg-gray-500 px-4 py-2 rounded">
-                  Dashboard
-                </button>
-              </Link>
               <button 
                 onClick={() => signOut()} 
                 className="text-white hover:bg-gray-500 px-4 py-2 rounded"
@@ -73,11 +68,6 @@ const Navbar: React.FC = () => {
           </Link>
           {session ? (
             <>
-              <Link href="/dashboard" passHref>
-                <button className="block w-full text-left text-white hover:bg-gray-500 px-4 py-2 rounded">
-                  Dashboard
-                </button>
-              </Link>
               <button 
                 onClick={() => signOut()} 
                 className="block w-full text-left text-white hover:bg-gray-500 px-4 py-2 rounded"

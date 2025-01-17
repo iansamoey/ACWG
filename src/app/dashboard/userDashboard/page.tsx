@@ -30,6 +30,19 @@ const UserDashboard: React.FC = () => {
     }
   }, [session]);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      // Prevent going back to the main dashboard
+      router.push('/dashboard/userDashboard');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [router]);
+
   const renderContent = () => {
     switch (activeTab) {
       case "order-summary":

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
 const LoginPage = () => {
@@ -17,6 +18,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +32,11 @@ const LoginPage = () => {
       });
 
       if (result?.error) {
-        alert(result.error);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "Invalid username or password. Please try again.",
+        });
       } else {
         // Fetch the session to get user data
         const session = await fetch("/api/auth/session");
@@ -43,7 +49,11 @@ const LoginPage = () => {
         }
       }
     } catch {
-      alert("An error occurred. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
